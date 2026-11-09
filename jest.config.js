@@ -4,6 +4,7 @@ module.exports = {
       displayName: 'app',
       preset: 'jest-expo',
       testMatch: ['<rootDir>/src/**/__tests__/**/*.test.{ts,tsx}'],
+      setupFiles: ['<rootDir>/jest.setup.js'],
     },
     {
       displayName: 'tooling',

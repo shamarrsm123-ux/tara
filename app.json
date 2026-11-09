@@ -26,8 +26,23 @@
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
-      ["expo-sqlite", { "useSQLCipher": true }],
-      "./plugins/withReleaseNoInternet"
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
+      "./plugins/withReleaseNoInternet",
+      "expo-font",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ]
     ]
   }
 }

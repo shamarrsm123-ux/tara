@@ -32,6 +32,11 @@ describe('findPermissionViolations', () => {
     expect(findPermissionViolations(out)).toHaveLength(1);
   });
 
+  test.each(['RECORD_AUDIO', 'FOREGROUND_SERVICE_MICROPHONE'])('fails on microphone permission %s', (perm) => {
+    const out = badging(`uses-permission: name='android.permission.${perm}'`);
+    expect(findPermissionViolations(out)).toHaveLength(1);
+  });
+
   test('allows fine location only when capped at Android 11 (10 §4)', () => {
     const capped = badging("uses-permission: name='android.permission.ACCESS_FINE_LOCATION' maxSdkVersion='30'");
     const uncapped = badging("uses-permission: name='android.permission.ACCESS_FINE_LOCATION'");

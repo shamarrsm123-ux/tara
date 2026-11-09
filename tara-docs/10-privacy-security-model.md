@@ -61,6 +61,7 @@ Brain data is among the most intimate data a person has. TARA's approach is not 
 | **Spoofed tarha** | Fake device feeds false stress | Phone connects only to its bonded device; protocol validation + CRC; firmware version check. 🟡 Just-Works pairing isn't MITM-proof (see `07` §2.2) |
 | **Malicious app on phone** | Another app reads files | App-private storage + encryption; no exported content providers; no data in shared storage or clipboard |
 | **OS cloud backup** 🟡 | Android Auto Backup copies app data to the user's cloud account (done by the OS, so the missing INTERNET permission doesn't stop it) | `android:allowBackup="false"`; external-storage permissions blocked in all builds. *Phase 0 assumption — needed for P1 to be true.* |
+| **Microphone** 🟡 | A judge or attacker finds a microphone permission in a "mental privacy" app | `expo-audio` configured playback-only (no `RECORD_AUDIO`, no background service); release APK check fails on any microphone permission. *Phase 1 hardening.* |
 | **SMS misuse** | Someone triggers SOS to scare family | Requires unlocked app + explicit multi-step flow + she presses Send in SMS app |
 | **Inference from notifications** | Repeated "stress" notifications seen by others | Neutral copy |
 | **Supply-chain / SDK leakage** | A library phones home | Forbidden-dependency list (`06` §2); no INTERNET permission means even a bad SDK can't connect |

@@ -3,6 +3,7 @@
 //  - INTERNET must be absent (P1).
 //  - Coarse/background location must be absent (P7).
 //  - Fine location is allowed only when capped at maxSdkVersion <= 30 (Android 8–11 BLE scan, 10 §4).
+//  - Microphone must be absent: voice lines are bundled playback only (🟡 Phase 1 hardening, 10 §3).
 const fs = require('fs');
 
 const MAX_SDK_FOR_LEGACY_BLE_LOCATION = 30;
@@ -23,6 +24,9 @@ function findPermissionViolations(badging) {
     }
     if (name === 'android.permission.ACCESS_COARSE_LOCATION' || name === 'android.permission.ACCESS_BACKGROUND_LOCATION') {
       return [{ name, reason: 'location permission not allowed (P7)' }];
+    }
+    if (name === 'android.permission.RECORD_AUDIO' || name === 'android.permission.FOREGROUND_SERVICE_MICROPHONE') {
+      return [{ name, reason: 'microphone not allowed — TARA only plays bundled voice files (10 §3)' }];
     }
     if (name === 'android.permission.ACCESS_FINE_LOCATION') {
       const isCapped = maxSdk !== null && maxSdk <= MAX_SDK_FOR_LEGACY_BLE_LOCATION;

@@ -57,13 +57,15 @@ Rules:
 
 Night theme tokens mirror these with adjusted lightness; defined in code.
 
+🟡 *Phase 1: Night values chosen in `src/ui/theme/tokens.ts` (bg `#231A14`, text `#F6EBDC`, calm `#6FCF8A`, rising `#F2B544`, high `#FF8A80`, cool `#82B9F5`); filled buttons use dark text in Night. Every pair is contrast-tested. Sun amber `#B87900` is 3.4:1 on `bg` — AA only as large text — so status-colored text is always bold ≥ 20sp (tested).*
+
 ---
 
 ## 4. Typography
 
 - **Arabic:** Noto Sans Arabic (or Cairo). **Amharic:** Noto Sans Ethiopic. **English:** Noto Sans. One family keeps glyph height consistent across scripts.
 - Sizes (sp): Calm number 72 · Screen title 28 · Body 20 · Button 22 · Small/caption 16 (minimum anywhere).
-- Numbers use the user's locale digits where appropriate (Eastern Arabic numerals optional in Arabic — follow phone setting).
+- Numbers use the user's locale digits where appropriate (Eastern Arabic numerals optional in Arabic — follow phone setting). 🟡 *Phase 1: Arabic uses ar-EG default (Eastern Arabic digits); following the phone's own digit setting is deferred to Settings (Phase 11).*
 - Sentence length: aim ≤ 12 words per sentence; one idea per line.
 
 ---
@@ -94,6 +96,8 @@ Night theme tokens mirror these with adjusted lightness; defined in code.
 | Cooling started | single short |
 | Reminder | short-long |
 | Battery low | three short |
+
+🟡 *Phase 1: pulse lengths unspecified — short 80 ms, long 400 ms, gap 150 ms (`src/ui/haptics.ts`).*
 
 ---
 
@@ -171,6 +175,7 @@ Yellow diagonal ribbon top-right + bar under status bar: "DEMO — not real brai
 
 - Speak to her as "you"; TARA speaks as "I".
 - Never: "abnormal", "disorder", "PMDD", "symptoms", "diagnosis", "brain scan", "mind reading".
+- 🟡 *Phase 1: Arabic and Amharic strings are drafts by the developer, not native speakers; they must be reviewed in Phase 12. Arabic banned-word equivalents (اضطراب، تشخيص، أعراض، غير طبيعي) are tested; the Amharic list needs a native speaker.*
 - Prefer: "stress", "calm", "cool break", "your tarha", "your phone".
 - Every privacy statement must be literally true of the build (checked in `12` §4).
 - Lock-screen texts are always neutral (`02` §8.13).
