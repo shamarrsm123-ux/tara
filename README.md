@@ -19,6 +19,7 @@ Expo Go does **not** work (native modules). Use the development build.
 | `npm run check` | typecheck, lint, unit tests + coverage, forbidden-dependency and source privacy scans |
 | `npm run android` | build + install the **debug** development build, start Metro |
 | `npm start` | start Metro for an already-installed dev build |
+| `npx expo start --web` | **dev-only** browser preview on localhost (demo source; no BLE/SQLCipher/SMS) — see `06` §2 |
 | `npm run android:release` | build + install the **release** variant (no INTERNET) |
 | `npm run prebuild` | regenerate `android/` from `app.json` + config plugins (never edit `android/` by hand) |
 | `scripts/device/check-release-apk.sh` | release APK + installed app have no INTERNET permission |

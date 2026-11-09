@@ -62,6 +62,7 @@ The primary technical objective: **a small, offline-first, privacy-by-constructi
 | State | Zustand (UI state) + the engine as plain TS modules | Simple, testable |
 | i18n | `i18next` + `react-i18next`, RTL via `I18nManager` | Arabic RTL + Amharic |
 | Tests | Jest (unit), React Native Testing Library, Maestro (E2E on device/emulator) | Free |
+| Web preview 🟡 | `react-native-web` + `react-dom` (`npx expo start --web`) | **Developer tool only** (approved 2026-11-08): lets the team click through demo-source screens on localhost without an Android SDK. Not a product target, never shipped or hosted; privacy promises are verified on the Android release APK. Native-only features (BLE, SQLCipher, notifications, SMS) are unavailable on web and must not get web fallbacks that weaken a promise. |
 
 🟡 *Phase 0 assumption:* Android application ID / iOS bundle ID is `org.tara.app`.
 

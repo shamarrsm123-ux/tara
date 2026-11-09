@@ -26,6 +26,8 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 **Acceptance:** dev build runs on a real Android phone; release APK has no INTERNET permission; CI green.
 
+🟡 *Approved change (2026-11-08): the team has no Android phone yet and no local Android SDK. Phase 0 is accepted when GitHub Actions builds the release APK, `aapt2` confirms no INTERNET permission, and all other CI checks are green. Running the dev build on a real phone and the on-device SQLCipher probe (`scripts/device/verify-sqlcipher.sh`) move to the start of Phase 7, which needs a phone for BLE anyway. Until then `expo-sqlite` + SQLCipher stays the provisional choice (`06` §2).*
+
 ## Phase 1 — Foundations
 - Folder structure per `06` §1/§4; `engine/constants.ts` from `07` §9.
 - i18n (Arabic, Amharic, English), RTL switching, fonts (Noto Arabic/Ethiopic/Sans).
