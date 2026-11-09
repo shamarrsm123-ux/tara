@@ -15,6 +15,7 @@ import { VoiceButton } from '../ui/components/VoiceButton';
 import type { GraphPoint } from '../ui/components/graphGeometry';
 import { UiProvider, useUi } from '../ui/theme/UiProvider';
 import { MAX_FONT_SCALE, PALETTES, SPACE, type ThemeName } from '../ui/theme/tokens';
+import { DemoPlaygroundScreen } from './DemoPlaygroundScreen';
 import { ProbeScreen } from './ProbeScreen';
 
 const GRAPH_WINDOW_MS = 10 * 60_000;
@@ -120,6 +121,7 @@ export function GalleryScreen() {
   const [theme, setTheme] = useState<ThemeName>('sun');
   const [fontScale, setFontScale] = useState(1);
   const [isProbe, setIsProbe] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   if (isProbe) {
     return (
@@ -127,6 +129,14 @@ export function GalleryScreen() {
         <Chip label="← Gallery" isOn={false} onPress={() => setIsProbe(false)} />
         <ProbeScreen />
       </View>
+    );
+  }
+
+  if (isDemo) {
+    return (
+      <UiProvider lang={lang} theme={theme} fontScale={fontScale} style={styles.fillOnly}>
+        <DemoPlaygroundScreen onExit={() => setIsDemo(false)} />
+      </UiProvider>
     );
   }
 
@@ -140,6 +150,7 @@ export function GalleryScreen() {
         <Chip label="Night" isOn={theme === 'night'} onPress={() => setTheme('night')} />
         <Chip label="100%" isOn={fontScale === 1} onPress={() => setFontScale(1)} />
         <Chip label="130%" isOn={fontScale === MAX_FONT_SCALE} onPress={() => setFontScale(MAX_FONT_SCALE)} />
+        <Chip label="▶ Demo" isOn={false} onPress={() => setIsDemo(true)} />
         <Chip label="DB probe" isOn={false} onPress={() => setIsProbe(true)} />
       </View>
       <UiProvider lang={lang} theme={theme} fontScale={fontScale}>
@@ -151,6 +162,7 @@ export function GalleryScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, paddingTop: 48 },
+  fillOnly: { flex: 1 },
   scroll: { paddingTop: 48, paddingBottom: 64 },
   controls: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, paddingHorizontal: SPACE.md, marginBottom: SPACE.md },
   chip: { minHeight: 44, paddingHorizontal: 14, borderRadius: 22, borderWidth: 2, borderColor: '#1565C0', justifyContent: 'center', backgroundColor: '#FFFFFF' },

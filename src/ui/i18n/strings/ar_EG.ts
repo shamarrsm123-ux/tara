@@ -28,6 +28,10 @@ export const ar_EG: Strings = {
     yesCool: 'أيوه — برّد',
     no: 'لأ',
   },
+  cool: {
+    start: 'برّد حوالين راسي',
+    stop: 'وقّف التبريد',
+  },
   common: {
     playVoice: 'شغّلي الصوت',
   },

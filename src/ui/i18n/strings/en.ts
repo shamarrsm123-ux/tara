@@ -27,6 +27,10 @@ export const en = {
     yesCool: 'Yes — Cool',
     no: 'No',
   },
+  cool: {
+    start: 'Cool Around My Head',
+    stop: 'Stop Cooling',
+  },
   common: {
     playVoice: 'Play voice',
   },

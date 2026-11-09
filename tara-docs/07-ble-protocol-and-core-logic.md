@@ -202,6 +202,12 @@ Implements `TarhaSource` (`09` §2) with scripted band powers.
 
 Demo-only overrides (sustain windows, time compression) live in `demo/` and **can't** affect the real engine's constants.
 
+🟡 *Phase 3 implementation notes:*
+- *The demo emits real 14-byte packets through the real decoder, StressComputer and engine. The scripts state the Calm to be **shown**; the demo source pre-compensates for the 10 s EMA so the smoothed value lands on the script. Scripts are written against the default baseline, and the idle signal before a scenario starts has a spread that makes a real Learn Your Calm run converge to that baseline.*
+- *Story: Calm falls 55 → 20 between 5 s and 7 s so that, with 1 Hz ticks and the 3 s demo sustain, the prompt appears at ~10 s (table: 9 s). After Yes, Calm follows the table relative to when cooling started; without Yes it stays at 20.*
+- *The 3 s sustain is passed to the engine as an injected `timing` option by the demo runner only; `engine/constants.ts` is unchanged and real sessions never pass it.*
+- *Calm day / Bad 2 PM week: real-time calm signal. Bad 2 PM week also generates 7 days of in-memory history (5 days with a ~2 PM episode) that detection turns into a 14:00 pattern with a 13:30 reminder. Low battery (sped up): battery 26% → 1% at 0.5%/s. Loose sensor: 40 s cycle of Good / Adjust / No contact / motion; while fit is bad the signal looks very stressed, and no alert fires.*
+
 ---
 
 ## 9. Constants Summary (`engine/constants.ts`)

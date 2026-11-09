@@ -144,10 +144,16 @@ function updateCalmer(s: EngineState, zone: Zone, valid: boolean): Step<EngineSt
   };
 }
 
-function onTick(s0: EngineState, calm: number | null, zone: Zone, valid: boolean, now: number): Step<EngineState> {
+/** Injected timing overrides. Only demo/ passes these (07 §8: demo-only overrides live in demo/). */
+export interface EngineTiming {
+  sustainS?: number;
+}
+
+function onTick(s0: EngineState, calm: number | null, zone: Zone, valid: boolean, now: number, timing: EngineTiming): Step<EngineState> {
   const stress = calm === null ? null : 100 - calm;
   const cool = withCooling(s0, tickCooling(s0.cooling, now));
-  const ep = stepEpisode(cool.state.episode, stress, valid, now, SUSTAIN_S[cool.state.settings.alertSensitivity]);
+  const sustainS = timing.sustainS ?? SUSTAIN_S[cool.state.settings.alertSensitivity];
+  const ep = stepEpisode(cool.state.episode, stress, valid, now, sustainS);
   const s1: EngineState = {
     ...cool.state,
     episode: ep.state,
@@ -194,10 +200,10 @@ function onStatus(s: EngineState, input: Extract<EngineInput, { t: 'status' }>, 
   return { state: { ...s, cooling: cool.state, battery: batt.state }, actions: [...cool.actions, ...batt.actions] };
 }
 
-export function reduce(s: EngineState, input: EngineInput, now: number, day: string): Step<EngineState> {
+export function reduce(s: EngineState, input: EngineInput, now: number, day: string, timing: EngineTiming = {}): Step<EngineState> {
   switch (input.t) {
     case 'tick':
-      return onTick(s, input.calm, input.zone, input.valid, now);
+      return onTick(s, input.calm, input.zone, input.valid, now, timing);
     case 'status':
       return onStatus(s, input, now);
     case 'promptAnswer':
@@ -240,11 +246,11 @@ export interface Engine {
   snapshot(): EngineSnapshot;
 }
 
-export function createEngine(clock: Clock, settings: Settings = DEFAULT_SETTINGS): Engine {
+export function createEngine(clock: Clock, settings: Settings = DEFAULT_SETTINGS, timing: EngineTiming = {}): Engine {
   let state = initialEngineState(settings);
   return {
     step(input, nowMono) {
-      const result = reduce(state, input, nowMono, localDayKey(clock.nowMs()));
+      const result = reduce(state, input, nowMono, localDayKey(clock.nowMs()), timing);
       state = result.state;
       return result.actions;
     },

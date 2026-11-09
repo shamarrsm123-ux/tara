@@ -45,6 +45,11 @@ export function stressFromIndex(xBar: number, baseline: Baseline): number {
   return Math.min(100, Math.max(0, STRESS_OFFSET + STRESS_GAIN * z));
 }
 
+/** Inverse of `stressFromIndex` (unclamped): the smoothed index that maps to stress S. Used by demo/. */
+export function indexForStress(stress: number, baseline: Baseline): number {
+  return baseline.m + (baseline.s * (stress - STRESS_OFFSET)) / STRESS_GAIN;
+}
+
 /** Zone from the stress index S (07 §4.5): Calm ≤ 50, Rising 51–69, High ≥ 70. */
 export function zoneForStress(stress: number): Zone {
   if (stress <= ZONE_CALM_MAX_S) return 'calm';

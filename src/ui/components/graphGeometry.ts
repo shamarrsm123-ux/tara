@@ -1,16 +1,8 @@
 // Pure geometry for the Live Graph (04 §9.2): maps time/Calm to SVG coordinates. No React.
 import { CALM_ZONE_MIN_C, HIGH_ZONE_MAX_C } from '../../engine/constants';
+import type { GraphPoint, TimeBand } from '../../shared/types';
 
-export interface GraphPoint {
-  tMs: number;
-  /** null = no valid signal that second; the line breaks there. */
-  calm: number | null;
-}
-
-export interface TimeBand {
-  fromMs: number;
-  toMs: number;
-}
+export type { GraphPoint, TimeBand };
 
 export interface GraphFrame {
   width: number;

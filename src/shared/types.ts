@@ -112,3 +112,15 @@ export const VOICE_LINE_IDS = [
   'deleteHold',
 ] as const;
 export type VoiceLineId = (typeof VOICE_LINE_IDS)[number];
+
+/** One point on the live graph (04 §9.2). `calm` null = no valid signal; the line breaks there. */
+export interface GraphPoint {
+  tMs: number;
+  calm: number | null;
+}
+
+/** A time range, e.g. a cooling period shown as a blue band. */
+export interface TimeBand {
+  fromMs: number;
+  toMs: number;
+}

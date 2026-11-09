@@ -28,6 +28,10 @@ export const am_ET: Strings = {
     yesCool: 'አዎ — አቀዝቅዝ',
     no: 'አይ',
   },
+  cool: {
+    start: 'በራሴ ዙሪያ አቀዝቅዝ',
+    stop: 'ማቀዝቀዝ አቁም',
+  },
   common: {
     playVoice: 'ድምፅ አጫውት',
   },
