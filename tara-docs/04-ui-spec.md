@@ -158,6 +158,8 @@ Yellow diagonal ribbon top-right + bar under status bar: "DEMO — not real brai
 
 **My Days:** today's graph; 7 day-bars underneath; footer about retention.
 
+🟡 *Phase 4 notes: (1) Until BLE exists (Phase 7) "Connect" finds no tarha, so Flow 1 step 4's "Use demo instead" is the path on every device. (2) On Home, Help, Mute and the bottom tabs are added in their own phases (10, 8, 8) rather than shown inactive. (3) The Welcome illustration and icons are code-drawn placeholders pending community review. (4) Amharic uses "ሻሽ" (headscarf) for tarha — to confirm with native speakers. (5) After Learn Your Calm, "Thank you…" shows for 2.5 s before Home. (6) The Calm number appears only after 5 s of continuous Good fit (11 §2); before that the meter shows "Adjust sensor".*
+
 **Help:** decision card → contact chooser (large name chips) → place chooser (chips) → message preview in a speech-bubble → **Open messages to send**.
 
 ---

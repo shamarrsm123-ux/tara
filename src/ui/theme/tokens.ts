@@ -103,3 +103,11 @@ export const DELETE_HOLD_MS = 3000;
 
 /** Android font scaling must work up to 130% without layout break (04 §13). */
 export const MAX_FONT_SCALE = 1.3;
+
+/** Learn Your Calm breathing circle: in 4 s, out 6 s (03 Flow 1b, 04 §10). */
+export const BREATHE_IN_MS = 4000;
+export const BREATHE_OUT_MS = 6000;
+/** Pause on "Thank you. Now I know your calm." before Home (03 Flow 1b step 4). 🟡 length unspecified. */
+export const CALIBRATION_DONE_PAUSE_MS = 2500;
+/** Voice nudge after the fit has not been Good for this long (03 Flow 1 step 5). */
+export const FIT_NUDGE_MS = 5000;

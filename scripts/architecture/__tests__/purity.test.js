@@ -26,7 +26,7 @@ describe('pure logic modules', () => {
   // Demo data is never persisted (11 §8.2, 10 P13): the demo and the monitoring session cannot reach storage.
   const STORAGE_IMPORT = /from ['"](expo-sqlite|expo-secure-store|expo-file-system|@react-native-async-storage[\w/-]*|[./]+\/store(\/[\w-]+)?)['"]/;
 
-  test.each(['demo', 'engine'])('%s/ imports no storage module', (dir) => {
+  test.each(['demo', 'engine', 'app', 'ui'])('%s/ imports no storage module', (dir) => {
     const offenders = sources(path.join(SRC, dir)).filter((f) => STORAGE_IMPORT.test(fs.readFileSync(f, 'utf8')));
     expect(offenders).toEqual([]);
   });

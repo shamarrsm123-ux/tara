@@ -101,6 +101,12 @@ export type HapticPattern = 'rising' | 'highPrompt' | 'coolingStarted' | 'remind
 /** Recorded voice lines (04 §6, lines from 03). Every id needs audio in every language (12 §2.4). */
 export const VOICE_LINE_IDS = [
   'langName',
+  'langConfirm',
+  'welcome',
+  'connectWear',
+  'fitMove',
+  'calibrateIntro',
+  'calibrateDone',
   'highPrompt',
   'autoCooling',
   'calmerNow',

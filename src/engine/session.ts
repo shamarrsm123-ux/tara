@@ -1,7 +1,8 @@
 // Monitoring session (06 §5 pipeline): TarhaSource → signal/ → engine/ → actions, with the last 10 minutes of
 // Calm kept in memory for the live graph. No React and no storage: per-second values never leave RAM
 // (10 §1). Works the same for the demo and the real tarha because both implement TarhaSource.
-import { FitStabilizer, fitLevel } from '../signal/fit';
+import { Calibrator } from '../signal/calibrator';
+import { FitStabilizer, fitLevel, isValid } from '../signal/fit';
 import { StressComputer, type Baseline } from '../signal/stress';
 import { Listeners, type ConnectionState, type TarhaSource, type Unsubscribe } from '../shared/tarhaSource';
 import {
@@ -20,6 +21,14 @@ import { createEngine, type EngineTiming } from './engine';
 import type { EngineAction, EngineInput, EngineSnapshot } from './types';
 
 export const GRAPH_WINDOW_MS = 10 * 60_000;
+/** Calm is shown only after this much continuous Good fit after (re)connecting (11 §2, 03 Flow 1/15). */
+export const GOOD_FIT_SHOW_MS = 5_000;
+
+export interface CalibrationState {
+  progress: number;
+  isPaused: boolean;
+  isDone: boolean;
+}
 
 export interface MonitorSnapshot {
   sourceKind: SourceKind;
@@ -31,6 +40,12 @@ export interface MonitorSnapshot {
   coolingBands: readonly TimeBand[];
   nowMs: number;
   engine: EngineSnapshot;
+  /** How long the fit has been continuously Good (0 when not). */
+  goodFitMs: number;
+  /** Learn Your Calm progress while it runs (03 Flow 1b). */
+  calibration: CalibrationState | null;
+  /** The baseline in use; saved only if she says Yes on Screen 5. */
+  baseline: Baseline;
 }
 
 export interface MonitorOptions {
@@ -50,6 +65,10 @@ export interface MonitorSession {
   dispatch(input: EngineInput): void;
   getSnapshot(): MonitorSnapshot;
   subscribe(listener: () => void): Unsubscribe;
+  /** Starts Learn Your Calm: 60 valid seconds; the result replaces the baseline automatically. */
+  startCalibration(): void;
+  /** Uses this baseline from now on (Skip → default; Recalibrate later). */
+  replaceBaseline(baseline: Baseline): void;
   dispose(): void;
 }
 
@@ -68,7 +87,9 @@ function updateBands(bands: readonly TimeBand[], isCooling: boolean, wasCooling:
 export function createMonitorSession(options: MonitorOptions): MonitorSession {
   const { source, clock } = options;
   const engine = createEngine(clock, options.settings ?? DEFAULT_SETTINGS, options.timing ?? {});
-  const computer = new StressComputer(options.baseline, clock);
+  let computer = new StressComputer(options.baseline, clock);
+  let calibrator: Calibrator | null = null;
+  let goodSinceMs: number | null = null;
   const fitStabilizer = new FitStabilizer();
   const listeners = new Listeners<void>();
   let lastStatus: TarhaStatus | null = null;
@@ -83,6 +104,23 @@ export function createMonitorSession(options: MonitorOptions): MonitorSession {
     coolingBands: [],
     nowMs: clock.nowMs(),
     engine: engine.snapshot(),
+    goodFitMs: 0,
+    calibration: null,
+    baseline: options.baseline,
+  };
+
+  const applyBaseline = (baseline: Baseline) => {
+    computer = new StressComputer(baseline, clock);
+    snapshot = { ...snapshot, baseline };
+  };
+
+  const calibrate = (sample: MetricsSample): CalibrationState | null => {
+    if (calibrator === null) return snapshot.calibration;
+    const { progress, paused } = calibrator.push(sample);
+    if (progress < 1) return { progress, isPaused: paused, isDone: false };
+    applyBaseline(calibrator.result());
+    calibrator = null;
+    return { progress: 1, isPaused: false, isDone: true };
   };
 
   const publish = (patch: Partial<MonitorSnapshot>) => {
@@ -110,10 +148,20 @@ export function createMonitorSession(options: MonitorOptions): MonitorSession {
   const step = (input: EngineInput) => perform(engine.step(input, clock.monotonicMs()));
 
   const onMetrics = (sample: MetricsSample) => {
+    const mono = clock.monotonicMs();
+    const calibration = calibrate(sample);
     const reading = computer.push(sample);
-    const fit = fitStabilizer.push(fitLevel(sample), clock.monotonicMs());
+    const fit = fitStabilizer.push(fitLevel(sample), mono);
+    goodSinceMs = isValid(sample) ? (goodSinceMs ?? mono) : null;
     step({ t: 'tick', calm: reading.calm, zone: reading.zone, valid: reading.valid });
-    publish({ calm: reading.calm, zone: reading.zone, fit, points: appendWithin(snapshot.points, { tMs: clock.nowMs(), calm: reading.calm }) });
+    publish({
+      calm: reading.calm,
+      zone: reading.zone,
+      fit,
+      calibration,
+      goodFitMs: goodSinceMs === null ? 0 : mono - goodSinceMs,
+      points: appendWithin(snapshot.points, { tMs: clock.nowMs(), calm: reading.calm }),
+    });
   };
 
   const onStatus = (status: TarhaStatus) => {
@@ -124,9 +172,10 @@ export function createMonitorSession(options: MonitorOptions): MonitorSession {
 
   const onConnection = (connection: ConnectionState) => {
     snapshot = { ...snapshot, connection };
+    goodSinceMs = null;
     if (connection === 'disconnected' && lastStatus !== null) step({ t: 'status', status: lastStatus, connected: false });
     // No stale Calm while not connected (03 Flow 15).
-    publish(connection === 'connected' ? {} : { calm: null, zone: 'unknown', fit: null });
+    publish(connection === 'connected' ? { goodFitMs: 0 } : { calm: null, zone: 'unknown', fit: null, goodFitMs: 0 });
   };
 
   const subscriptions = [source.onMetrics(onMetrics), source.onStatus(onStatus), source.onConnection(onConnection)];
@@ -140,6 +189,15 @@ export function createMonitorSession(options: MonitorOptions): MonitorSession {
     },
     getSnapshot: () => snapshot,
     subscribe: (listener) => listeners.add(() => listener()),
+    startCalibration: () => {
+      calibrator = new Calibrator();
+      publish({ calibration: { progress: 0, isPaused: false, isDone: false } });
+    },
+    replaceBaseline: (baseline) => {
+      calibrator = null;
+      applyBaseline(baseline);
+      publish({ calibration: null });
+    },
     dispose: () => subscriptions.forEach((unsubscribe) => unsubscribe()),
   };
 }
