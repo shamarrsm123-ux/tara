@@ -1,0 +1,131 @@
+# TARA — Implementation Plan
+
+**Version:** 1.0
+**Document:** 13 — Implementation Plan
+**Status:** Ready — canonical build order
+**Depends on:** All prior documents (01–12). Introduces no new decisions.
+
+---
+
+## 0. How to Use This Document
+
+The last document before code. Each phase has an objective, work, tests and acceptance criteria, and leaves the repo runnable. **If a phase surfaces a conflict with an earlier document, stop and flag it** (`08` §3). Authority order: `02` = `10` > `03` > `05`/`07`/`11` > `06`/`09` > implementation.
+
+**Per-feature micro-loop:** read PRD → flow → data model → core logic → write engine/store code with tests → wire UI → voice + i18n + RTL → airplane-mode check → acceptance criteria. Never build screens on fake logic and "connect it later": the demo source *is* the real interface.
+
+**Fast path for the competition demo:** Phases 0–5 + 7 + the Story scenario produce the 30-second MVP video. Everything after makes it a real app.
+
+---
+
+## Phase 0 — Repo Audit & Environment
+- Inspect any existing repo; assume nothing is correct.
+- Create Expo (TypeScript, strict) project with a **development build** (BLE needs native modules; Expo Go won't work).
+- Choose and verify the SQLCipher-capable SQLite library on a real Android device (`06` §2).
+- Configure release build to block `android.permission.INTERNET`; confirm a release APK runs.
+- CI on GitHub Actions: typecheck, lint, unit tests, manifest + dependency privacy checks (`12` §4).
+
+**Acceptance:** dev build runs on a real Android phone; release APK has no INTERNET permission; CI green.
+
+## Phase 1 — Foundations
+- Folder structure per `06` §1/§4; `engine/constants.ts` from `07` §9.
+- i18n (Arabic, Amharic, English), RTL switching, fonts (Noto Arabic/Ethiopic/Sans).
+- Design tokens & core components from `04`: Calm Meter, Live Graph, Decision Card, Fit Chip, Hold-to-Confirm, Demo Ribbon.
+- Voice player with placeholder audio; haptics helper.
+- Lint rules: ban location modules, network APIs, hardcoded UI strings.
+
+**Acceptance:** a component gallery screen renders every component in all three languages, Sun & Night themes, at 130% font scale.
+
+## Phase 2 — Signal & Engine (pure logic first)
+- `signal/`: packet decode, fit, EMA, calibrator, stress mapping (`07` §2–4).
+- `engine/`: episodes, prompt, cooling, help question, mute, battery rules (`07` §5, §7; `11` §3–5).
+- `patterns/`: detection (`07` §6).
+
+**Tests:** all of `12` §2. **Acceptance:** 100% of the listed unit cases pass with a fake clock; no React imports in these modules.
+
+## Phase 3 — Demo Source
+- `demo/` implementing `TarhaSource` with scenarios: Story, Calm day, Bad 2 PM week, Low battery, Loose sensor (`03` Flow 18, `07` §8).
+- Demo ribbon always visible while active.
+
+**Acceptance:** every scenario drives the engine end-to-end in memory; nothing is persisted.
+
+## Phase 4 — Try Flow (Screens L, 0, 1, 1b, 2)
+- Language, Welcome, Connect (demo first), Learn Your Calm, Home with live meter + graph + Cool button.
+- Lifecycle state `fresh/trying` (`11` §1): nothing on disk.
+
+**Acceptance:** a tester can go from install to a moving Calm meter in under 2 minutes, in Arabic, without reading English.
+
+## Phase 5 — Action & Cooling (Screen 3) — **the MVP**
+- Prompt card, Yes/No, cooling card with countdown and Stop, cooling state from status, post-cooling quiet, "alert less often?".
+- Record the **30-second MVP video** with the Story scenario (labeled "Demo — sped up").
+
+**Acceptance:** `12` §6 flow 3 passes; video shows Calm 20% → 60% → 80% with the prompt and cooling.
+
+## Phase 6 — Store, Save & Privacy Screens (Screens 4 example, 5, 6)
+- `store/`: key creation, SQLCipher DB, migrations, minute aggregator, events, retention job, `wipeEverything` (`05`).
+- Screen 4 example, Screen 5 (save, name, age range), Screen 6 (retention shorter-only, No-internet status, Delete Everything, family/place/lock opt-ins).
+
+**Tests:** `12` §3 and the wipe / Try-No / encryption checks in §4.
+**Acceptance:** choosing No leaves no files; choosing Yes creates an encrypted DB; Delete Everything returns to a fresh install state.
+
+## Phase 7 — Hardware Prototype & BLE
+- **Tinkercad diagram:** Arduino Uno + potentiometer (sensor stand-in) + blue LED/mini fan via transistor (cooling) + battery; annotate "BLE module (ESP32 in real build)" and the sensor position behind the ear.
+- **ESP32 firmware:** GATT service per `07` §2; potentiometer → simulated band powers (Option A) or EXG front end (Option B); cooling driver with firmware limits; battery %; bonding.
+- **App `ble/`:** scan, blink-to-identify, bond, encrypted-link check, reconnect backoff, permissions per Android version with explanations (`10` §4).
+- Optional: tarha mock-up (scarf + 3D-printed or fabric pouch behind the ear; an old earbud shell is fine as a *shape* model only — `06` §7).
+
+**Tests:** `12` §5. **Acceptance:** turning the knob drives a real prompt; Yes lights the LED within 1 s; firmware stops cooling at its own limit with the app killed.
+
+## Phase 8 — Daily Mode
+- Tabs: Home · My Days · Safety. Android foreground service; discreet notifications; mute; disconnect handling; phone battery warning.
+
+**Acceptance:** 8-hour soak (demo source) with screen off keeps monitoring; notifications neutral on lock screen.
+
+## Phase 9 — Smart Reminders (Screen 4, real)
+- Nightly detection, offer card, schedule/cancel daily reminder, fade handling, decline suppression.
+
+**Acceptance:** `12` §6 flow 4; shortening retention to 1 day cancels the reminder and shows "I need more days".
+
+## Phase 10 — Family & Help Request
+- Contacts (max 3, manual or picker), test message, place labels, help flow with preview and SMS composer, engine-initiated question with 60-min cooldown.
+
+**Acceptance:** `12` §6 flow 5; SMS composer is opened only from the preview Send handler; message text exactly matches the preview.
+
+## Phase 11 — Battery Alerts, App Lock, Settings
+- Battery thresholds (`07` §7), App Lock with phone authentication, all Settings items (`03` Flow 16), recalibration.
+
+**Acceptance:** each setting change is reflected in engine behavior immediately and survives restart.
+
+## Phase 12 — Voice & Localization Completion
+- Record final voice lines with native speakers (Egyptian Arabic, Amharic); review illustrations and copy with community members; RTL review.
+
+**Acceptance:** `12` §2.4 passes with no placeholders; native-speaker sign-off.
+
+## Phase 13 — Full Integration
+Run all `12` §6 E2E flows on a release build, in airplane mode, on a real low-end Android phone.
+
+## Phase 14 — Privacy & Security Hardening
+Run every check in `12` §4 as an adversary would: inspect the APK, pull files, try SMS paths, try unencrypted BLE, check notification text on a locked phone.
+
+**Acceptance:** every promise P1–P13 in `10` §2 has a passing check. Any failing promise blocks release or its UI sentence is removed.
+
+## Phase 15 — Performance & Field Testing
+`12` §7 measurements; consented usability sessions per `12` §8 and `10` §6; tune ⚙️ constants based on results (record every change in `07`).
+
+## Phase 16 — Demo & Submission Readiness
+- Release APK built from a clean checkout.
+- 30-second MVP video, a 2-minute walkthrough, Tinkercad diagram, ESP32 live demo, and a one-page "How TARA protects mental privacy" sheet listing P1–P13 with how judges can verify them (airplane mode, APK permissions, Delete Everything).
+- Pitch materials include the required honesty statements (`01`).
+
+**Acceptance:** a judge can install the APK, enable airplane mode, run the Story demo, and Delete Everything — and every claim on screen is true.
+
+---
+
+## 17. Git Discipline
+Small coherent commits per phase; descriptive messages; never commit secrets, signing keys, test-participant data, or recorded audio of participants.
+
+## 18. Definition of Done
+As `12` §9. A feature is not done because the screen renders — it's done when the logic is tested, the privacy promise it touches is verified, it works offline on a cheap phone, and she can understand it without reading.
+
+---
+
+*End of the TARA documentation set: Vision & PRD (`01`–`02`) → Flows & UI (`03`–`04`) → Data & Architecture (`05`–`06`) → Protocol & Logic (`07`) → Rules (`08`) → Contracts, Privacy, State, Testing (`09`–`12`) → this plan (`13`) → code.*
