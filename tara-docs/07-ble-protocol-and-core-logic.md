@@ -66,6 +66,8 @@ All three custom characteristics require an **encrypted, bonded link** (LE Secur
 
 Theta (4–8 Hz) included for the ratio's denominator. **No raw waveform is ever transmitted.**
 
+🟡 *Phase 2: "CRC-8" is implemented as CRC-8/SMBUS (poly 0x07, init 0x00, no reflection) — firmware must match. Packets longer than 14 bytes with a supported `ver` are accepted and trailing bytes ignored (§2.6). Saturation/motion flags decode to a sample that is an invalid second (`isValid` = false) rather than a decode error, so the 09 `MetricsSample` fields stay meaningful; length/CRC/version/all-zero bands are decode errors. A second whose band ratio is undefined (beta = 0 or alpha + theta = 0) is also invalid.*
+
 ### 2.4 `status` packet (6 bytes)
 `ver u8 · battery_pct u8 · cooling u8 (0 off, 1 on, 2 locked: battery, 3 locked: rest period, 4 fault) · cooling_remaining_s u16 · faults u8`
 
@@ -111,7 +113,7 @@ Exponential moving average with time constant **10 s** ⚙️: `x̄ ← x̄ + (x
 
 ### 4.3 Baseline (calibration, Flow 1b)
 Collect 60 valid seconds. `m = median(x)`, `s = max(1.4826 · MAD(x), s_min)` where `s_min = 0.05` ⚙️.
-Default baseline (if skipped): firmware-provided population default for `m`, `s` ⚙️, flagged `is_default`.
+Default baseline (if skipped): firmware-provided population default for `m`, `s` ⚙️, flagged `is_default`. 🟡 *Phase 2: until firmware provides one, the app default is m = −0.7, s = 0.25 (`DEFAULT_BASELINE_M/S`).*
 
 ### 4.4 Mapping to 0–100
 `z = (x̄ − m) / s`
@@ -145,6 +147,7 @@ Show when a high episode starts **and**: cooling is off, alerts aren't muted, no
 - Disallowed if tarha battery ≤ 10% (status `2`) or disconnected.
 - Optional overcool guard: if thermistor present and skin temp < 30.0 °C ⚙️ → firmware stops cooling.
 - App shows cooling state **only from `status` notifications**, never optimistically beyond a 2 s "starting…" spinner.
+- 🟡 *Phase 2: the one extension re-sends `COOL_ON` with the new remaining duration (capped at 20 min from the session start). The app also stops cooling itself if tarha battery reaches ≤ 10% while on (reason `battery`), in addition to the firmware lockout.*
 
 ### 5.4 Help question (Flow 11, entry B)
 Ask when: S ≥ 85 for 10 min ⚙️ (≥ 80% valid) **and** in this episode cooling ran or the prompt was shown **and** no help question in the last 60 min ⚙️ **and** alerts not muted.
@@ -159,7 +162,7 @@ Mute 30 min / 1 h / rest of day suppresses prompts and help questions. It does n
 
 Runs nightly (first app run after 00:00 local) and after retention changes.
 
-1. **Usable days** = days within retention with ≥ 120 valid minutes.
+1. **Usable days** = days within retention with ≥ 120 valid minutes. 🟡 *A valid minute = a `minute_summary` row whose zone isn't `unknown` (≥ 30 valid seconds). Only the first episode start per day counts toward a window. Fade support (step 7) counts usable days with a start within ±30 min of the pattern time.*
 2. Require ≥ 4 usable days ⚙️; otherwise no patterns ("I need more days").
 3. Candidate windows: every 30-min boundary `t` from 06:00 to 19:30; window `[t, t+60 min)`.
 4. A day **matches** `t` if a `high_episode_start` occurred in the window that day.

@@ -116,6 +116,8 @@ interface Engine {
 ```
 **The engine is the only producer of prompts, help questions and automatic cooling.** UI may only dispatch inputs. Every rule in `07` §5 and every transition in `11` §2–3 is implemented here.
 
+🟡 *Phase 2 additions: `coolOff.reason` also allows `'battery'`; `NotifyKind` adds `'batteryOff'` (≤ 3% alert, `07` §7). `createEngine(clock, settings)` uses `nowMono` for every timer and the clock's wall time only to bucket per-day counters (3 No's/day, phone-battery alert/day). `mute.untilMs` is on the same monotonic timeline as `nowMono`. `snapshot()` returns `EngineSnapshot` (episode, prompt/help visibility, cooling display, block reason, extend availability, mute, connection, battery).*
+
 ---
 
 ## 5. `patterns/` (pure)

@@ -55,3 +55,42 @@ export const RETENTION_MAX_DAYS = 7;
 export const CALM_ZONE_MIN_C = 100 - ZONE_CALM_MAX_S;
 /** Calm level at or below which the zone is High stress. */
 export const HIGH_ZONE_MAX_C = 100 - ZONE_HIGH_MIN_S;
+
+// ---- Values stated in the body of 07 (and 09) but not in the §9 summary ----
+
+// BLE packet (07 §2.3, §2.5, §2.7; 09 §2)
+export const PROTOCOL_VERSION = 1;
+export const METRICS_PACKET_BYTES = 14;
+export const SEQ_GAP_UNSTABLE = 5;
+export const SIGNAL_UNSTABLE_S = 10;
+export const COOL_MAX_DURATION_S = 1200;
+
+// Fit chip shown after a stable reading (07 §3)
+export const FIT_STABLE_S = 3;
+
+// EMA reset after this long without a valid second (07 §4.2)
+export const EMA_RESET_INVALID_S = 30;
+
+// 🟡 Population default baseline when calibration is skipped (07 §4.3 says "firmware-provided"; no values
+// given). ln(beta / (alpha + theta)) ≈ −0.7 for a typical resting ratio of ~0.5. Revisit with real data.
+export const DEFAULT_BASELINE_M = -0.7;
+export const DEFAULT_BASELINE_S = 0.25;
+
+// High episode ends after this long with no valid signal (07 §5.1)
+export const HIGH_END_NO_SIGNAL_MIN = 10;
+
+// Cooling (07 §5.3, 11 §4)
+export const COOL_EXTEND_MIN = 10;
+export const COOL_CONFIRM_S = 2;
+
+// Battery alert re-arms above this level (07 §7)
+export const BATT_REARM = 30;
+
+// Pattern detection (07 §6)
+export const PATTERN_USABLE_DAY_VALID_MIN = 120;
+export const PATTERN_FIRST_SLOT_MIN = 6 * 60;
+export const PATTERN_LAST_SLOT_MIN = 19 * 60 + 30;
+export const PATTERN_SLOT_STEP_MIN = 30;
+export const PATTERN_WINDOW_MIN = 60;
+export const PATTERN_ROUND_MIN = 15;
+export const PATTERN_MAX = 2;
