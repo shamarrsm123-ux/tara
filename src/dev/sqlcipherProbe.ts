@@ -41,9 +41,24 @@ async function canRead(db: Db): Promise<boolean> {
   }
 }
 
-async function step(name: string, run: () => Promise<boolean>): Promise<ProbeStep> {
+export const PROBE_STEP_TIMEOUT_MS = 10_000;
+
+class ProbeTimeoutError extends Error {
+  override name = 'TimeoutError';
+}
+
+/** Rejects if `promise` hasn't settled within `ms`, so a stalled native call fails visibly. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new ProbeTimeoutError(`no response after ${ms} ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+async function step(name: string, run: () => Promise<boolean>, timeoutMs: number): Promise<ProbeStep> {
   try {
-    return { name, isPass: await run() };
+    return { name, isPass: await withTimeout(run(), timeoutMs) };
   } catch (error: unknown) {
     const kind = error instanceof Error ? error.name : 'UnknownError';
     return { name: `${name} (${kind})`, isPass: false };
@@ -62,18 +77,21 @@ async function createProbeDb(key: string): Promise<boolean> {
   return typeof row?.cipher_version === 'string' && row.cipher_version.length > 0;
 }
 
-export async function runSqlcipherProbe(): Promise<ProbeStep[]> {
+export async function runSqlcipherProbe(timeoutMs: number = PROBE_STEP_TIMEOUT_MS): Promise<ProbeStep[]> {
   const key = toHex(Crypto.getRandomBytes(KEY_BYTES));
   const wrongKey = toHex(Crypto.getRandomBytes(KEY_BYTES));
   try {
-    await SQLite.deleteDatabaseAsync(PROBE_DB_NAME);
-  } catch {
-    // No probe DB from a previous run — nothing to delete.
+    await withTimeout(SQLite.deleteDatabaseAsync(PROBE_DB_NAME), timeoutMs);
+  } catch (error: unknown) {
+    // No probe DB from a previous run is the normal case; a stalled native module is not.
+    if (error instanceof ProbeTimeoutError) {
+      return [{ name: 'SQLite responds (TimeoutError)', isPass: false }];
+    }
   }
   return [
-    await step('SQLCipher linked (cipher_version)', () => createProbeDb(key)),
-    await step('Correct key reads data', async () => canRead(await openWithKey(key))),
-    await step('Wrong key is rejected', async () => !(await canRead(await openWithKey(wrongKey)))),
-    await step('No key is rejected', async () => !(await canRead(await openWithKey(null)))),
+    await step('SQLCipher linked (cipher_version)', () => createProbeDb(key), timeoutMs),
+    await step('Correct key reads data', async () => canRead(await openWithKey(key)), timeoutMs),
+    await step('Wrong key is rejected', async () => !(await canRead(await openWithKey(wrongKey))), timeoutMs),
+    await step('No key is rejected', async () => !(await canRead(await openWithKey(null))), timeoutMs),
   ];
 }

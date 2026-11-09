@@ -1,7 +1,7 @@
 // Phase 0 developer diagnostics. Only mounted when __DEV__ (see App.tsx), stripped from release
 // bundles by Metro's dead-code elimination. Developer-facing text, so it is not routed through i18n.
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { isProbePassing, runSqlcipherProbe, type ProbeStep } from './sqlcipherProbe';
 
 type ProbeState = { kind: 'idle' } | { kind: 'running' } | { kind: 'done'; steps: ProbeStep[] };
@@ -13,6 +13,18 @@ export function ProbeScreen() {
     setState({ kind: 'running' });
     setState({ kind: 'done', steps: await runSqlcipherProbe() });
   };
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>TARA · Phase 0 dev probe</Text>
+        <Text style={styles.step} testID="sqlcipher-probe-web-notice">
+          The SQLCipher probe runs on Android only. Browsers have no encrypted SQLite, so there is nothing
+          to test here.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
