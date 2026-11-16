@@ -9,7 +9,7 @@ import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { VoiceButton } from '../components/VoiceButton';
 import { UiProvider, useUi } from '../theme/UiProvider';
-import { PRIMARY_BUTTON_HEIGHT, RADIUS, SPACE } from '../theme/tokens';
+import { PRIMARY_BUTTON_HEIGHT, RADIUS, SHADOW, SPACE } from '../theme/tokens';
 import { playVoice } from '../voice/player';
 
 interface LanguageScreenProps {
@@ -28,7 +28,7 @@ function LanguageCard({ lang, isSelected, onPress }: { lang: Lang; isSelected: b
       <View
         style={[
           styles.card,
-          { backgroundColor: palette.surface, borderColor: isSelected ? palette.cool : palette.sand, borderWidth: isSelected ? SELECTED_BORDER : BORDER },
+          { backgroundColor: palette.surface, borderColor: isSelected ? palette.accent : palette.surface, borderWidth: isSelected ? SELECTED_BORDER : BORDER },
         ]}
       >
         <Pressable accessibilityRole="radio" accessibilityState={{ selected: isSelected }} onPress={onPress} style={styles.cardPress} testID={`lang-${lang}`}>
@@ -49,7 +49,7 @@ export function LanguageScreen({ selected, onSelect, onContinue }: LanguageScree
   return (
     <ScreenFrame
       testID="screen-language"
-      footer={selected !== null ? <Button label={t('language.continue')} onPress={onContinue} testID="language-continue" /> : undefined}
+      footer={selected !== null ? <Button label={t('language.continue')} hasArrow onPress={onContinue} testID="language-continue" /> : undefined}
     >
       <View style={styles.cards}>
         {LANGS.map((lang) => (
@@ -62,6 +62,6 @@ export function LanguageScreen({ selected, onSelect, onContinue }: LanguageScree
 
 const styles = StyleSheet.create({
   cards: { gap: SPACE.md, paddingTop: SPACE.xl },
-  card: { flexDirection: 'row', alignItems: 'center', borderRadius: RADIUS.card, paddingHorizontal: SPACE.md, gap: SPACE.md },
+  card: { flexDirection: 'row', alignItems: 'center', borderRadius: RADIUS.card, paddingHorizontal: SPACE.lg, gap: SPACE.md, ...SHADOW },
   cardPress: { flex: 1, minHeight: PRIMARY_BUTTON_HEIGHT + SPACE.md, justifyContent: 'center' },
 });

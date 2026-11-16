@@ -10,11 +10,12 @@ import { AlertLessCard, CoolingCard, PromptCard } from '../components/ActionCard
 import { AppText } from '../components/AppText';
 import { Button } from '../components/Button';
 import { CalmMeter, type MeterStatus } from '../components/CalmMeter';
+import { DemoRibbon } from '../components/DemoRibbon';
 import { LiveGraph } from '../components/LiveGraph';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { IconBattery, IconLink, IconSnow } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
-import { SPACE } from '../theme/tokens';
+import { RADIUS, SPACE } from '../theme/tokens';
 
 export interface HomeActions {
   onCool: (on: boolean) => void;
@@ -43,36 +44,55 @@ export function isCoolingActive(s: MonitorSnapshot): boolean {
   return s.engine.cooling === 'on' || s.engine.cooling === 'starting';
 }
 
-function StatusRow({ snapshot }: { snapshot: MonitorSnapshot }) {
+function Stat({ icon, value, label, testID }: { icon: ReactNode; value: string; label: string; testID?: string }) {
+  return (
+    <View style={styles.stat} accessible accessibilityLabel={`${label}: ${value}`} testID={testID}>
+      {icon}
+      <AppText variant="body" isBold color="onInk">
+        {value}
+      </AppText>
+      <AppText variant="caption" color="onInk" style={styles.statLabel}>
+        {label}
+      </AppText>
+    </View>
+  );
+}
+
+/** Dark stat panel (04a §4): tarha · battery · cooling — icon, value, label. */
+function StatusPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
   const { t, palette, lang } = useUi();
   const isConnected = snapshot.connection === 'connected';
   const battery = snapshot.engine.tarhaBatteryPct;
   const isCooling = snapshot.engine.cooling === 'on';
   return (
-    <View style={styles.statusRow}>
-      <View accessible accessibilityLabel={isConnected ? t('status.connected') : t('status.notConnected')} testID="status-connection">
-        <IconLink color={isConnected ? palette.calm : palette.neutral} />
-      </View>
-      {battery !== null && (
-        <View accessible accessibilityLabel={t('status.battery', { pct: formatNumber(battery, lang) })} style={styles.battery}>
-          <IconBattery color={palette.text} pct={battery} />
-          <AppText variant="body" isBold>
-            {formatNumber(battery, lang)}
-            {t('meter.percent')}
-          </AppText>
-        </View>
-      )}
-      <View accessible accessibilityLabel={isCooling ? t('status.coolingOn') : t('status.coolingOff')} testID="status-cooling">
-        <IconSnow color={isCooling ? palette.cool : palette.neutral} />
-      </View>
+    <View style={[styles.panel, { backgroundColor: palette.ink }]}>
+      <Stat
+        testID="status-connection"
+        icon={<IconLink color={isConnected ? palette.calm : palette.neutral} />}
+        value={isConnected ? t('status.connectedShort') : '—'}
+        label={t('status.tarhaLabel')}
+      />
+      <Stat
+        icon={<IconBattery color={palette.onInk} pct={battery ?? 0} />}
+        value={battery === null ? '—' : `${formatNumber(battery, lang)}${t('meter.percent')}`}
+        label={t('status.batteryLabel')}
+      />
+      <Stat
+        testID="status-cooling"
+        icon={<IconSnow color={isCooling ? palette.cool : palette.neutral} />}
+        value={isCooling ? t('status.on') : t('status.off')}
+        label={t('status.coolingLabel')}
+      />
     </View>
   );
 }
 
-function Overlay({ children }: { children: ReactNode }) {
+/** Full-screen card over Home. The demo ribbon is drawn again on top so the scrim never dims it (08 §12). */
+function Overlay({ children, demo }: { children: ReactNode; demo: { isSpedUp: boolean } | null }) {
   return (
     <View style={styles.overlay} testID="home-overlay">
-      {children}
+      {demo !== null && <DemoRibbon isSpedUp={demo.isSpedUp} />}
+      <View style={styles.overlayBody}>{children}</View>
     </View>
   );
 }
@@ -89,11 +109,12 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onPromptAnswer, o
     <View style={styles.fill}>
       <ScreenFrame
         testID="screen-home"
+        title={t('brand.name')}
         onBack={isCooling ? undefined : onBack}
         demo={demo}
-        footer={isCooling ? undefined : <Button label={t('cool.start')} isDisabled={isBlocked} onPress={() => onCool(true)} testID="home-cool" />}
+        footer={isCooling ? undefined : <Button label={t('cool.start')} hasArrow isDisabled={isBlocked} onPress={() => onCool(true)} testID="home-cool" />}
       >
-        <StatusRow snapshot={snapshot} />
+        <StatusPanel snapshot={snapshot} />
         {snapshot.connection !== 'connected' && <AppText variant="body">{t('status.notConnected')}</AppText>}
         <View style={styles.center}>
           <CalmMeter calm={snapshot.calm} zone={snapshot.zone} status={meterStatusFor(snapshot)} testID="home-meter" />
@@ -117,12 +138,12 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onPromptAnswer, o
         <LiveGraph points={snapshot.points} coolingBands={snapshot.coolingBands} nowMs={snapshot.nowMs} windowMs={GRAPH_WINDOW_MS} />
       </ScreenFrame>
       {e.isPromptShowing ? (
-        <Overlay>
+        <Overlay demo={demo}>
           <PromptCard blockReason={e.coolBlockReason} onAnswer={onPromptAnswer} onDismiss={onPromptDismiss} />
         </Overlay>
       ) : (
         e.isAskingAlertLess && (
-          <Overlay>
+          <Overlay demo={demo}>
             <AlertLessCard onAnswer={onAlertLess} />
           </Overlay>
         )
@@ -133,8 +154,9 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onPromptAnswer, o
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  battery: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs },
+  panel: { flexDirection: 'row', borderRadius: RADIUS.card, paddingVertical: SPACE.md, paddingHorizontal: SPACE.sm },
+  stat: { flex: 1, alignItems: 'center', gap: SPACE.xs },
+  statLabel: { opacity: 0.75 },
   center: { alignItems: 'center' },
   overlay: {
     position: 'absolute',
@@ -143,7 +165,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     backgroundColor: OVERLAY_SCRIM,
-    justifyContent: 'center',
-    padding: SPACE.md,
+    overflow: 'hidden',
   },
+  overlayBody: { flex: 1, justifyContent: 'center', padding: SPACE.md },
 });

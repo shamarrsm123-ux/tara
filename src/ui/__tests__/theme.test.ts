@@ -15,10 +15,11 @@ describe('contrast math', () => {
   });
 });
 
-describe('Sun palette is the 04 §3 table', () => {
+describe('Sun palette is the 04a table (zone and cooling colors still 04 §3)', () => {
   test('uses the specified colors', () => {
     const { bg, surface, text, textMuted, sand, calm, rising, high, cool, demo } = PALETTES.sun;
-    expect([bg, surface, text, textMuted, sand]).toEqual(['#FBF7F0', '#FFFFFF', '#1A1714', '#5A524A', '#E9DCC6']);
+    expect([bg, surface, text, textMuted, sand]).toEqual(['#F4F1EC', '#FFFFFF', '#1C1A17', '#4F4842', '#E7E1D8']);
+    expect([PALETTES.sun.accent, PALETTES.sun.ink, PALETTES.sun.chip]).toEqual(['#E96B10', '#1E1B18', '#ECE8E2']);
     expect([calm, rising, high, cool, demo]).toEqual(['#1B7F3B', '#B87900', '#C62828', '#1565C0', '#FFD54F']);
   });
 
@@ -44,6 +45,19 @@ describe.each(THEMES)('%s theme meets WCAG AA (04 §3)', (theme) => {
 
   test.each(['calm', 'high', 'cool'] as const)('text on a filled %s button is AA', (token) => {
     expect(contrastRatio(p.onAccent, p[token])).toBeGreaterThanOrEqual(WCAG.aaNormal);
+  });
+
+  test('orange buttons: bold ≥ 20sp label is AA-large; orange text on cards is AA-large', () => {
+    expect(contrastRatio(p.onAccent, p.accent)).toBeGreaterThanOrEqual(WCAG.aaLarge);
+    expect(contrastRatio(p.accent, p.surface)).toBeGreaterThanOrEqual(WCAG.aaLarge);
+  });
+
+  test('text on the dark panel is AAA', () => {
+    expect(contrastRatio(p.onInk, p.ink)).toBeGreaterThanOrEqual(WCAG.aaaNormal);
+  });
+
+  test('text on chips is AAA', () => {
+    expect(contrastRatio(p.text, p.chip)).toBeGreaterThanOrEqual(WCAG.aaaNormal);
   });
 
   test('demo ribbon text is AA', () => {

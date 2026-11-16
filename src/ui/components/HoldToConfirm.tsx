@@ -6,7 +6,7 @@ import Svg, { Circle } from 'react-native-svg';
 import type { VoiceLineId } from '../../shared/types';
 import { formatNumber } from '../i18n/format';
 import { useUi } from '../theme/UiProvider';
-import { DELETE_HOLD_MS, PRIMARY_BUTTON_HEIGHT, RADIUS, SPACE } from '../theme/tokens';
+import { DELETE_HOLD_MS, PRIMARY_BUTTON_HEIGHT, RADIUS, SHADOW, SPACE } from '../theme/tokens';
 import { playVoice, stopVoice } from '../voice/player';
 import { AppText } from './AppText';
 
@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
     gap: SPACE.md,
     paddingHorizontal: SPACE.md,
     paddingVertical: SPACE.sm,
+    ...SHADOW,
   },
   text: { flex: 1 },
 });

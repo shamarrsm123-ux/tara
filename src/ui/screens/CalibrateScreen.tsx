@@ -3,9 +3,9 @@
 // thanks her when done. Skip is a small link (default baseline).
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
 import type { MonitorSnapshot } from '../../engine/session';
 import { AppText } from '../components/AppText';
+import { SegmentedArc } from '../components/CalmMeter';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { useUi } from '../theme/UiProvider';
 import { BREATHE_IN_MS, BREATHE_OUT_MS, TOUCH_MIN } from '../theme/tokens';
@@ -19,10 +19,9 @@ interface CalibrateScreenProps {
   onBack: () => void;
 }
 
-const SIZE = 240;
-const RING = 14;
-const R = (SIZE - RING) / 2;
-const C = 2 * Math.PI * R;
+const ARC_W = 300;
+const ARC_H = 250;
+const BREATH = 150;
 const SMALL = 0.6;
 
 export function CalibrateScreen({ snapshot, isDemo, onSkip, onBack }: CalibrateScreenProps) {
@@ -62,22 +61,8 @@ export function CalibrateScreen({ snapshot, isDemo, onSkip, onBack }: CalibrateS
     <ScreenFrame testID="screen-calibrate" voiceLine="calibrateIntro" onBack={onBack} demo={isDemo ? { isSpedUp: false } : null}>
       <AppText variant="body">{t('calibrate.intro')}</AppText>
       <View style={styles.circleBox} accessible accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}>
-        <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
-          <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} stroke={palette.track} strokeWidth={RING} fill="none" />
-          <Circle
-            cx={SIZE / 2}
-            cy={SIZE / 2}
-            r={R}
-            stroke={isPaused ? palette.neutral : palette.calm}
-            strokeWidth={RING}
-            strokeDasharray={`${C} ${C}`}
-            strokeDashoffset={C * (1 - progress)}
-            strokeLinecap="round"
-            fill="none"
-            transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
-          />
-        </Svg>
-        <Animated.View style={[styles.breath, { backgroundColor: palette.bandCool, transform: [{ scale }] }]} />
+        <SegmentedArc fraction={progress} color={isPaused ? palette.neutral : palette.accent} trackColor={palette.track} />
+        <Animated.View style={[styles.breath, { backgroundColor: palette.accentSoft, transform: [{ scale }] }]} />
       </View>
       <AppText variant="question" style={styles.center} testID="calibrate-message">
         {message}
@@ -94,8 +79,8 @@ export function CalibrateScreen({ snapshot, isDemo, onSkip, onBack }: CalibrateS
 }
 
 const styles = StyleSheet.create({
-  circleBox: { width: SIZE, height: SIZE, alignSelf: 'center', alignItems: 'center', justifyContent: 'center' },
-  breath: { width: SIZE - 4 * RING, height: SIZE - 4 * RING, borderRadius: SIZE },
+  circleBox: { width: ARC_W, height: ARC_H, alignSelf: 'center', alignItems: 'center', paddingTop: 72 },
+  breath: { width: BREATH, height: BREATH, borderRadius: BREATH / 2 },
   center: { textAlign: 'center' },
   skip: { minHeight: TOUCH_MIN, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 16 },
 });

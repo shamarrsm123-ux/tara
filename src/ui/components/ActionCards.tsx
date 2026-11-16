@@ -7,13 +7,13 @@ import type { CoolBlockReason, CoolOnReason } from '../../engine/types';
 import { formatCountdown, formatNumber } from '../i18n/format';
 import { IconBattery, IconLink, IconSnow } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
-import { RADIUS, SPACE } from '../theme/tokens';
+import { SPACE } from '../theme/tokens';
 import { AppText } from './AppText';
 import { Button } from './Button';
 import { DecisionCard } from './DecisionCard';
+import { Card, Tag } from './Surface';
 import { VoiceButton } from './VoiceButton';
 
-const BAND = 14;
 const RING = 96;
 const RING_STROKE = 9;
 const RING_R = (RING - RING_STROKE) / 2;
@@ -45,6 +45,7 @@ export function PromptCard({ blockReason, onAnswer, onDismiss }: PromptCardProps
         question={t('prompt.highStress')}
         yesLabel={t('prompt.yesCool')}
         noLabel={t('prompt.no')}
+        tagLabel={t('zone.high')}
         voiceLine="highPrompt"
         onYes={() => onAnswer(true)}
         onNo={() => onAnswer(false)}
@@ -53,8 +54,8 @@ export function PromptCard({ blockReason, onAnswer, onDismiss }: PromptCardProps
     );
   }
   return (
-    <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.sand }]} testID="prompt-blocked">
-      <View style={[styles.band, { backgroundColor: palette.high }]} />
+    <Card testID="prompt-blocked">
+      <Tag label={t('zone.high')} color={palette.high} />
       <View style={styles.body}>
         <View style={styles.header}>
           <AppText variant="question" style={styles.flex}>
@@ -65,9 +66,9 @@ export function PromptCard({ blockReason, onAnswer, onDismiss }: PromptCardProps
         <View style={styles.center} testID={`prompt-blocked-${blockReason}`}>
           <ReasonIcon reason={blockReason} />
         </View>
-        <Button label={t('common.ok')} onPress={onDismiss} tone="neutral" variant="outlined" testID="prompt-ok" />
+        <Button label={t('common.ok')} onPress={onDismiss} tone="ink" testID="prompt-ok" />
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -98,8 +99,8 @@ export function CoolingCard({ remainingS, totalS, reason, isStarting, canExtend,
   const message = isStarting ? t('cool.starting') : reason === 'auto' ? t('cool.auto') : t('cool.on');
 
   return (
-    <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.sand }]} testID="cooling-card">
-      <View style={[styles.band, { backgroundColor: palette.cool }]} />
+    <Card testID="cooling-card">
+      <Tag label={t('status.coolingLabel')} color={palette.cool} testID="cooling-tag" />
       <View style={styles.body}>
         <View style={styles.header}>
           <AppText variant="question" style={styles.flex}>
@@ -143,7 +144,7 @@ export function CoolingCard({ remainingS, totalS, reason, isStarting, canExtend,
         )}
         <Button label={t('cool.stop')} onPress={onStop} variant="outlined" tone="neutral" testID="cooling-stop" />
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -165,9 +166,7 @@ export function AlertLessCard({ onAnswer }: { onAnswer: (yes: boolean) => void }
 }
 
 const styles = StyleSheet.create({
-  card: { alignSelf: 'stretch', borderRadius: RADIUS.card, borderWidth: 1, overflow: 'hidden' },
-  band: { height: BAND },
-  body: { padding: SPACE.lg, gap: SPACE.md },
+  body: { gap: SPACE.md },
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.md },
   flex: { flex: 1 },
   center: { alignItems: 'center' },

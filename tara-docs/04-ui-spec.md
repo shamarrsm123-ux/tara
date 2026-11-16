@@ -15,6 +15,8 @@ Nexus-style apps assume a student indoors, reading English, on a new phone. TARA
 
 ---
 
+> ✅ **2026-11-16 — visual design moved to `04a-visual-design.md`.** Colors (§3), the Calm meter look (§9.1), the live graph look (§9.2), the decision-card band (§9.4) and the Latin font (§4) follow `04a`. Everything else here — rules, sizes as minimums, behavior, copy — still applies.
+
 ## 1. Design Philosophy
 
 - **Familiar and warm**, like fabric and earth — not clinical, not "techy".

@@ -71,6 +71,12 @@ export const en = {
     skip: 'Skip',
   },
   status: {
+    connectedShort: 'Connected',
+    off: 'Off',
+    on: 'On',
+    coolingLabel: 'Cooling',
+    batteryLabel: 'Battery',
+    tarhaLabel: 'Tarha',
     connected: 'Tarha connected',
     notConnected: 'Tarha not connected — reconnecting…',
     battery: 'Tarha battery {{pct}} percent',
@@ -79,6 +85,9 @@ export const en = {
   },
   alertLess: {
     question: 'Should I alert you less often today?',
+  },
+  brand: {
+    name: 'TARA',
   },
   common: {
     no: 'No',

@@ -11,7 +11,7 @@ interface AppTextProps extends TextProps {
   isBold?: boolean;
 }
 
-const BOLD_VARIANTS: ReadonlySet<TypeVariant> = new Set(['calmNumber', 'title', 'button', 'zone']);
+const BOLD_VARIANTS: ReadonlySet<TypeVariant> = new Set(['calmNumber', 'headline', 'title', 'button', 'zone']);
 
 export function AppText({ variant, color = 'text', isBold, style, ...rest }: AppTextProps) {
   const { palette, fonts, fontScale, lineHeightRatio, isRtl } = useUi();

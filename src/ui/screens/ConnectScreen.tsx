@@ -11,7 +11,7 @@ import { LiveGraph } from '../components/LiveGraph';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { TarhaIllustration } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
-import { FIT_NUDGE_MS, SPACE } from '../theme/tokens';
+import { FIT_NUDGE_MS, RADIUS, SPACE } from '../theme/tokens';
 import { playVoice } from '../voice/player';
 
 export type ConnectPhase = 'idle' | 'searching' | 'notFound' | 'connected';
@@ -47,13 +47,13 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
   const footer =
     phase === 'notFound' ? (
       <>
-        <Button label={t('connect.useDemo')} onPress={onUseDemo} testID="connect-demo" />
+        <Button label={t('connect.useDemo')} hasArrow onPress={onUseDemo} testID="connect-demo" />
         <Button label={t('connect.tryAgain')} onPress={onConnect} variant="outlined" tone="neutral" testID="connect-retry" />
       </>
     ) : phase === 'connected' ? (
-      <Button label={t('connect.next')} onPress={onNext} isDisabled={!canContinue} testID="connect-next" />
+      <Button label={t('connect.next')} hasArrow onPress={onNext} isDisabled={!canContinue} testID="connect-next" />
     ) : (
-      <Button label={t('connect.button')} onPress={onConnect} isDisabled={phase === 'searching'} testID="connect-button" />
+      <Button label={t('connect.button')} hasArrow onPress={onConnect} isDisabled={phase === 'searching'} testID="connect-button" />
     );
 
   return (
@@ -65,8 +65,8 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
           {isPoorFit && <AppText variant="body">{t('connect.fitMove')}</AppText>}
         </View>
       ) : (
-        <View style={styles.center}>
-          <TarhaIllustration scarf={palette.sand} skin={SKIN} dot={palette.cool} isGlowing />
+        <View style={[styles.hero, { backgroundColor: palette.accentSoft }]}>
+          <TarhaIllustration scarf={palette.surface} skin={SKIN} dot={palette.accent} isGlowing />
         </View>
       )}
       <AppText variant="body">{t('connect.instruction')}</AppText>
@@ -85,6 +85,6 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: 'center' },
+  hero: { alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.card, paddingVertical: SPACE.lg },
   live: { gap: SPACE.md },
 });

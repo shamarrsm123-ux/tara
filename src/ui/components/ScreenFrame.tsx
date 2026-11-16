@@ -6,7 +6,8 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import type { VoiceLineId } from '../../shared/types';
 import { IconBack } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
-import { SPACE, TOUCH_MIN } from '../theme/tokens';
+import { SHADOW, SPACE, TOUCH_MIN } from '../theme/tokens';
+import { AppText } from './AppText';
 import { playVoice } from '../voice/player';
 import { DemoRibbon } from './DemoRibbon';
 import { VoiceButton } from './VoiceButton';
@@ -19,12 +20,14 @@ interface ScreenFrameProps {
   shouldAutoPlay?: boolean;
   onBack?: () => void;
   demo?: { isSpedUp: boolean } | null;
+  /** Optional small title centred in the header (04a). */
+  title?: string;
   testID?: string;
 }
 
 const TOP_INSET = 32;
 
-export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true, onBack, demo = null, testID }: ScreenFrameProps) {
+export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true, onBack, demo = null, title, testID }: ScreenFrameProps) {
   const { palette, lang, t, isRtl } = useUi();
 
   useEffect(() => {
@@ -36,13 +39,24 @@ export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true
       {demo !== null && <DemoRibbon isSpedUp={demo.isSpedUp} />}
       <View style={styles.header}>
         {onBack !== undefined ? (
-          <Pressable accessibilityRole="button" accessibilityLabel={t('common.back')} onPress={onBack} style={styles.iconButton} testID="back">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+            onPress={onBack}
+            style={[styles.iconButton, styles.round, { backgroundColor: palette.surface }]}
+            testID="back"
+          >
             <IconBack color={palette.text} isFlipped={isRtl} />
           </Pressable>
         ) : (
           <View style={styles.iconButton} />
         )}
-        {voiceLine !== undefined && <VoiceButton line={voiceLine} />}
+        {title !== undefined && (
+          <AppText variant="body" isBold style={styles.title}>
+            {title}
+          </AppText>
+        )}
+        {voiceLine !== undefined ? <VoiceButton line={voiceLine} /> : <View style={styles.iconButton} />}
       </View>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {children}
@@ -56,6 +70,8 @@ const styles = StyleSheet.create({
   root: { flex: 1, position: 'relative', overflow: 'hidden' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACE.md, paddingTop: TOP_INSET },
   iconButton: { width: TOUCH_MIN, height: TOUCH_MIN, alignItems: 'center', justifyContent: 'center' },
+  round: { borderRadius: TOUCH_MIN / 2, ...SHADOW },
+  title: { flex: 1, textAlign: 'center' },
   scroll: { flex: 1 },
   content: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.lg, gap: SPACE.lg },
   footer: { paddingHorizontal: SPACE.lg, paddingBottom: SPACE.lg, paddingTop: SPACE.sm, gap: SPACE.md },

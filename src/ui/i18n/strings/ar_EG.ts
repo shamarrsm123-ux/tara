@@ -72,6 +72,12 @@ export const ar_EG: Strings = {
     skip: 'تخطّي',
   },
   status: {
+    connectedShort: 'متوصّلة',
+    off: 'مقفول',
+    on: 'شغّال',
+    coolingLabel: 'التبريد',
+    batteryLabel: 'البطارية',
+    tarhaLabel: 'الطرحة',
     connected: 'الطرحة متوصّلة',
     notConnected: 'الطرحة مش متوصّلة — بنحاول نوصّل…',
     battery: 'بطارية الطرحة {{pct}} في المية',
@@ -80,6 +86,9 @@ export const ar_EG: Strings = {
   },
   alertLess: {
     question: 'أنبّهك أقل النهارده؟',
+  },
+  brand: {
+    name: 'تارا',
   },
   common: {
     no: 'لأ',

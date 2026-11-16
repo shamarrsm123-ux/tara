@@ -1,12 +1,13 @@
-// Decision Card (04 §9.4): full-width card, colored top band, 24sp question, ▶, optional illustration,
-// two same-size buttons — Yes filled blue, No outlined (04 §5: No is never hidden).
+// Decision Card (04 §9.4, 04a D4): white rounded card with a tag pill (dot + word), the question, ▶,
+// optional illustration, and two same-size pills — Yes filled orange, No outlined (04 §5).
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { VoiceLineId } from '../../shared/types';
 import { useUi } from '../theme/UiProvider';
-import { RADIUS, SPACE } from '../theme/tokens';
+import { SPACE } from '../theme/tokens';
 import { AppText } from './AppText';
 import { Button } from './Button';
+import { Card, Tag } from './Surface';
 import { VoiceButton } from './VoiceButton';
 
 export type CardTone = 'high' | 'cool' | 'neutral';
@@ -18,42 +19,36 @@ interface DecisionCardProps {
   noLabel: string;
   onYes: () => void;
   onNo: () => void;
+  /** Word shown in the tag pill; omitted for neutral questions. */
+  tagLabel?: string;
   voiceLine?: VoiceLineId;
   illustration?: ReactNode;
   testID?: string;
 }
 
-const BAND_HEIGHT = 14;
-
-export function DecisionCard({ tone, question, yesLabel, noLabel, onYes, onNo, voiceLine, illustration, testID }: DecisionCardProps) {
+export function DecisionCard({ tone, question, yesLabel, noLabel, onYes, onNo, tagLabel, voiceLine, illustration, testID }: DecisionCardProps) {
   const { palette } = useUi();
-  const bandColor = tone === 'neutral' ? palette.sand : palette[tone];
   return (
-    <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.sand }]} testID={testID}>
-      <View style={[styles.band, { backgroundColor: bandColor }]} testID={testID ? `${testID}-band` : undefined} />
-      <View style={styles.body}>
-        <View style={styles.header}>
-          <AppText variant="question" style={styles.question}>
-            {question}
-          </AppText>
-          {voiceLine !== undefined && <VoiceButton line={voiceLine} />}
-        </View>
-        {illustration !== undefined && <View style={styles.illustration}>{illustration}</View>}
-        <View style={styles.buttons}>
-          <Button label={yesLabel} onPress={onYes} tone="cool" testID={testID ? `${testID}-yes` : undefined} />
-          <Button label={noLabel} onPress={onNo} variant="outlined" tone="neutral" testID={testID ? `${testID}-no` : undefined} />
-        </View>
+    <Card testID={testID}>
+      {tagLabel !== undefined && tone !== 'neutral' && <Tag label={tagLabel} color={palette[tone]} testID={testID ? `${testID}-tag` : undefined} />}
+      <View style={styles.header}>
+        <AppText variant="question" style={styles.question}>
+          {question}
+        </AppText>
+        {voiceLine !== undefined && <VoiceButton line={voiceLine} />}
       </View>
-    </View>
+      {illustration !== undefined && <View style={styles.illustration}>{illustration}</View>}
+      <View style={styles.buttons}>
+        <Button label={yesLabel} onPress={onYes} hasArrow testID={testID ? `${testID}-yes` : undefined} />
+        <Button label={noLabel} onPress={onNo} variant="outlined" tone="neutral" testID={testID ? `${testID}-no` : undefined} />
+      </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { alignSelf: 'stretch', borderRadius: RADIUS.card, borderWidth: 1, overflow: 'hidden' },
-  band: { height: BAND_HEIGHT },
-  body: { padding: SPACE.lg, gap: SPACE.lg },
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.md },
   question: { flex: 1 },
   illustration: { alignItems: 'center' },
-  buttons: { gap: SPACE.md },
+  buttons: { gap: SPACE.md, marginTop: SPACE.sm },
 });

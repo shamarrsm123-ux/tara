@@ -77,9 +77,10 @@ describe('DecisionCard (04 §9.4)', () => {
     expect(size('c-yes').minHeight).toBe(64);
   });
 
-  test('top band color follows the tone (red for high stress)', async () => {
-    await wrap(<DecisionCard tone="high" question="Q?" yesLabel="Y" noLabel="N" onYes={jest.fn()} onNo={jest.fn()} testID="c" />);
-    expect(StyleSheet.flatten(screen.getByTestId('c-band').props.style).backgroundColor).toBe('#C62828');
+  test('tag pill shows the word with a dot in the tone color (red for high stress, 04a D4)', async () => {
+    await wrap(<DecisionCard tone="high" tagLabel="High stress" question="Q?" yesLabel="Y" noLabel="N" onYes={jest.fn()} onNo={jest.fn()} testID="c" />);
+    expect(screen.getByTestId('c-tag')).toHaveTextContent('High stress');
+    expect(StyleSheet.flatten(screen.getByTestId('c-tag-dot').props.style).backgroundColor).toBe('#C62828');
   });
 });
 

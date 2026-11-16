@@ -6,6 +6,8 @@ import { UiProvider } from '../../ui/theme/UiProvider';
 import { TryFlow } from '../TryFlow';
 
 const t = translatorFor('en');
+// Simulating 15+ minutes of fake time through the full UI takes a few real seconds.
+jest.setTimeout(30_000);
 
 async function seconds(n: number) {
   for (let i = 0; i < n; i += 1) {

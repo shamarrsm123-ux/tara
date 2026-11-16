@@ -72,6 +72,12 @@ export const am_ET: Strings = {
     skip: 'ዝለዪ',
   },
   status: {
+    connectedShort: 'ተገናኝቷል',
+    off: 'ጠፍቷል',
+    on: 'በርቷል',
+    coolingLabel: 'ማቀዝቀዝ',
+    batteryLabel: 'ባትሪ',
+    tarhaLabel: 'ሻሽ',
     connected: 'ሻሹ ተገናኝቷል',
     notConnected: 'ሻሹ አልተገናኘም — እንደገና እያገናኘን ነው…',
     battery: 'የሻሹ ባትሪ {{pct}} በመቶ',
@@ -80,6 +86,9 @@ export const am_ET: Strings = {
   },
   alertLess: {
     question: 'ዛሬ ያነሰ ላስጠነቅቅሽ?',
+  },
+  brand: {
+    name: 'ታራ',
   },
   common: {
     no: 'አይ',

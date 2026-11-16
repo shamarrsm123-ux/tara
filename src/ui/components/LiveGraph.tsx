@@ -1,13 +1,15 @@
-// Live Graph (04 §9.2): pale green/amber/red background bands, one thick line, blue band where cooling
-// was on, no gridlines, just start/end time labels. In RTL, time flows in the reading direction (04 §5).
+// Live Graph (04 §9.2, 04a D5): a white card with rounded bars (one per 10 s) colored by zone, grey dots
+// where there was no valid signal, a blue band under cooling, and start/end time labels. In RTL, time flows
+// in the reading direction (04 §5).
 import { useState } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Rect } from 'react-native-svg';
 import { formatClock, formatNumber } from '../i18n/format';
 import { useUi } from '../theme/UiProvider';
 import { SPACE } from '../theme/tokens';
 import { AppText } from './AppText';
-import { coolingRects, linePaths, zoneBands, type GraphFrame, type GraphPoint, type TimeBand } from './graphGeometry';
+import { barSeries, coolingRects, yFor, type GraphFrame, type GraphPoint, type TimeBand } from './graphGeometry';
+import { Card } from './Surface';
 
 interface LiveGraphProps {
   points: readonly GraphPoint[];
@@ -18,36 +20,43 @@ interface LiveGraphProps {
   testID?: string;
 }
 
-const DEFAULT_HEIGHT = 140;
-const LINE_WIDTH = 4;
+const DEFAULT_HEIGHT = 120;
+const BUCKET_MS = 10_000;
+const BAR_GAP = 2;
+const MIN_BAR = 4;
+const DOT_R = 2;
+const BAND_RADIUS = 8;
 const MS_PER_MIN = 60_000;
 
 export function LiveGraph({ points, coolingBands = [], nowMs, windowMs, height = DEFAULT_HEIGHT, testID }: LiveGraphProps) {
   const { palette, t, lang, isRtl } = useUi();
   const [width, setWidth] = useState(0);
   const frame: GraphFrame = { width, height, startMs: nowMs - windowMs, endMs: nowMs };
-  const bands = zoneBands(frame);
-
+  const label = t('graph.a11y', { minutes: formatNumber(Math.round(windowMs / MS_PER_MIN), lang) });
   const onLayout = (e: LayoutChangeEvent) => setWidth(Math.round(e.nativeEvent.layout.width));
+  const bars = width > 0 ? barSeries(points, frame, Math.round(windowMs / BUCKET_MS)) : [];
 
   return (
-    <View
-      accessible
-      accessibilityLabel={t('graph.a11y', { minutes: formatNumber(Math.round(windowMs / MS_PER_MIN), lang) })}
-      testID={testID}
-    >
-      <View onLayout={onLayout} style={[styles.plot, { height }]}>
+    <Card testID={testID}>
+      <View accessible accessibilityLabel={label}>
+        <AppText variant="body" isBold>
+          {label}
+        </AppText>
+      </View>
+      <View onLayout={onLayout} style={{ height }}>
         {width > 0 && (
           <Svg width={width} height={height} style={isRtl ? styles.mirrored : undefined}>
-            <Rect x={0} y={bands.calm.y} width={width} height={bands.calm.height} fill={palette.bandCalm} />
-            <Rect x={0} y={bands.rising.y} width={width} height={bands.rising.height} fill={palette.bandRising} />
-            <Rect x={0} y={bands.high.y} width={width} height={bands.high.height} fill={palette.bandHigh} />
             {coolingRects(coolingBands, frame).map((r) => (
-              <Rect key={`cool-${r.x}`} x={r.x} y={0} width={r.width} height={height} fill={palette.bandCool} />
+              <Rect key={`cool-${r.x}`} x={r.x} y={0} width={Math.max(r.width, MIN_BAR)} height={height} rx={BAND_RADIUS} fill={palette.bandCool} />
             ))}
-            {linePaths(points, frame).map((d) => (
-              <Path key={d.slice(0, 24)} d={d} stroke={palette.text} strokeWidth={LINE_WIDTH} strokeLinejoin="round" strokeLinecap="round" fill="none" />
-            ))}
+            {bars.map((b) => {
+              const w = Math.max(b.width - BAR_GAP, 2);
+              if (b.calm === null || b.zone === null) {
+                return <Circle key={b.x} cx={b.x + b.width / 2} cy={height - DOT_R} r={DOT_R} fill={palette.neutral} />;
+              }
+              const y = Math.min(yFor(b.calm, frame), height - MIN_BAR);
+              return <Rect key={b.x} x={b.x + BAR_GAP / 2} y={y} width={w} height={height - y} rx={w / 2} fill={palette[b.zone]} />;
+            })}
           </Svg>
         )}
       </View>
@@ -59,12 +68,11 @@ export function LiveGraph({ points, coolingBands = [], nowMs, windowMs, height =
           {formatClock(frame.endMs, lang)}
         </AppText>
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  plot: { alignSelf: 'stretch', borderRadius: 12, overflow: 'hidden' },
   mirrored: { transform: [{ scaleX: -1 }] },
-  labels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACE.xs },
+  labels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -SPACE.xs },
 });

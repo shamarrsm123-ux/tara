@@ -5,9 +5,10 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '../components/AppText';
 import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
+import { Card } from '../components/Surface';
 import { IconEarSensor, IconLock, IconSnow, IconWoman, TarhaIllustration } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
-import { SPACE, TOUCH_MIN } from '../theme/tokens';
+import { RADIUS, SPACE, TOUCH_MIN } from '../theme/tokens';
 
 interface WelcomeScreenProps {
   onTry: () => void;
@@ -32,22 +33,27 @@ export function WelcomeScreen({ onTry, onBack }: WelcomeScreenProps) {
       testID="screen-welcome"
       voiceLine="welcome"
       onBack={onBack}
-      footer={<Button label={t('welcome.try')} onPress={onTry} testID="welcome-try" />}
+      footer={<Button label={t('welcome.try')} hasArrow onPress={onTry} testID="welcome-try" />}
     >
-      <View style={styles.center}>
-        <TarhaIllustration scarf={palette.sand} skin={SKIN} dot={palette.cool} isGlowing />
+      <View style={[styles.hero, { backgroundColor: palette.accentSoft }]}>
+        <TarhaIllustration scarf={palette.surface} skin={SKIN} dot={palette.accent} size={200} isGlowing />
       </View>
-      <AppText variant="body">{t('welcome.intro')}</AppText>
-      <View style={styles.rows}>
+      <AppText variant="headline">{t('brand.name')}</AppText>
+      <AppText variant="body" color="textMuted">
+        {t('welcome.intro')}
+      </AppText>
+      <Card>
         {ROWS.map(({ Icon, key }) => (
           <View key={key} style={styles.row}>
-            <Icon color={palette.cool} />
+            <View style={[styles.iconBubble, { backgroundColor: palette.accentSoft }]}>
+              <Icon color={palette.accent} />
+            </View>
             <AppText variant="body" style={styles.rowText}>
               {t(key)}
             </AppText>
           </View>
         ))}
-      </View>
+      </Card>
       <AppText variant="caption" color="textMuted">
         {t('welcome.disclaimer')}
       </AppText>
@@ -58,7 +64,7 @@ export function WelcomeScreen({ onTry, onBack }: WelcomeScreenProps) {
         style={styles.expander}
         testID="welcome-sensor"
       >
-        <AppText variant="body" color="cool" isBold>
+        <AppText variant="body" color="accent" isBold>
           {t('welcome.sensorQuestion')}
         </AppText>
       </Pressable>
@@ -68,8 +74,8 @@ export function WelcomeScreen({ onTry, onBack }: WelcomeScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: 'center' },
-  rows: { gap: SPACE.md },
+  hero: { alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.card, paddingVertical: SPACE.lg },
+  iconBubble: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   rowText: { flex: 1 },
   expander: { minHeight: TOUCH_MIN, justifyContent: 'center' },

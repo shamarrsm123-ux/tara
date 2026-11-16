@@ -1,5 +1,6 @@
-// Design tokens from 04. Sun values are the 04 §3 table verbatim; Night is "mirrored with adjusted
-// lightness" (04 §3) — 🟡 values chosen here, contrast-checked in theme tests.
+// Design tokens. Visual language from 04a (team decision 2026-11-16): warm light grey, white cards, orange
+// action color, near-black panels; zone colors and blue-for-cooling unchanged from 04 §3. Night mirrors
+// Sun with adjusted lightness — contrast-checked in theme tests.
 
 export type ThemeName = 'sun' | 'night';
 
@@ -14,6 +15,14 @@ export interface Palette {
   high: string;
   cool: string;
   demo: string;
+  /** Action color: primary buttons, selection, brand (04a D2). */
+  accent: string;
+  accentSoft: string;
+  /** Near-black pills and panels, and text on them. */
+  ink: string;
+  onInk: string;
+  /** Chip / inactive pill background. */
+  chip: string;
   /** Text/icons drawn on a filled calm/high/cool background. */
   onAccent: string;
   /** Text on the demo yellow. */
@@ -30,43 +39,53 @@ export interface Palette {
 
 export const PALETTES: Record<ThemeName, Palette> = {
   sun: {
-    bg: '#FBF7F0',
+    bg: '#F4F1EC',
     surface: '#FFFFFF',
-    text: '#1A1714',
-    textMuted: '#5A524A',
-    sand: '#E9DCC6',
+    text: '#1C1A17',
+    textMuted: '#4F4842',
+    sand: '#E7E1D8',
     calm: '#1B7F3B',
     rising: '#B87900',
     high: '#C62828',
     cool: '#1565C0',
     demo: '#FFD54F',
+    accent: '#E96B10',
+    accentSoft: '#FDE7D6',
+    ink: '#1E1B18',
+    onInk: '#FFFFFF',
+    chip: '#ECE8E2',
     onAccent: '#FFFFFF',
     onDemo: '#1A1714',
     bandCalm: '#E4F2E7',
     bandRising: '#FBF0D9',
     bandHigh: '#FAE3E3',
-    bandCool: 'rgba(21, 101, 192, 0.18)',
-    track: '#E9DCC6',
+    bandCool: 'rgba(21, 101, 192, 0.14)',
+    track: '#E7E1D8',
     neutral: '#7D746B',
   },
   night: {
-    bg: '#231A14',
-    surface: '#33281F',
+    bg: '#1A1714',
+    surface: '#262220',
     text: '#F6EBDC',
     textMuted: '#CDBEAA',
-    sand: '#5A4A3A',
+    sand: '#3A332C',
     calm: '#6FCF8A',
     rising: '#F2B544',
     high: '#FF8A80',
     cool: '#82B9F5',
     demo: '#FFD54F',
+    accent: '#FF8A3D',
+    accentSoft: '#4A2E1A',
+    ink: '#0E0C0A',
+    onInk: '#F6EBDC',
+    chip: '#332E29',
     onAccent: '#1A1714',
     onDemo: '#1A1714',
     bandCalm: '#26372A',
     bandRising: '#3B3020',
     bandHigh: '#3E2522',
     bandCool: 'rgba(130, 185, 245, 0.22)',
-    track: '#4A3C30',
+    track: '#3A332C',
     neutral: '#A39584',
   },
 };
@@ -74,6 +93,7 @@ export const PALETTES: Record<ThemeName, Palette> = {
 /** Type sizes in sp (04 §4). 16 is the minimum anywhere. */
 export const TYPE_SIZE = {
   calmNumber: 72,
+  headline: 32,
   title: 28,
   question: 24,
   button: 22,
@@ -90,7 +110,16 @@ export const STATUS_TEXT_MIN_SIZE = 20;
 export const TOUCH_MIN = 56;
 export const PRIMARY_BUTTON_HEIGHT = 64;
 export const SPACE = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
-export const RADIUS = { chip: 999, card: 20, button: 16 } as const;
+export const RADIUS = { chip: 999, card: 28, button: 999 } as const;
+
+/** One soft shadow for cards and round buttons (04a §3). */
+export const SHADOW = {
+  shadowColor: '#000000',
+  shadowOpacity: 0.07,
+  shadowRadius: 18,
+  shadowOffset: { width: 0, height: 6 },
+  elevation: 3,
+} as const;
 
 /** Calm meter (04 §9.1). */
 export const RING_STROKE = 18;
