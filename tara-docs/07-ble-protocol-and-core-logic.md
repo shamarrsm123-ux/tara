@@ -141,6 +141,8 @@ Default baseline (if skipped): firmware-provided population default for `m`, `s`
 Show when a high episode starts **and**: cooling is off, alerts aren't muted, no prompt in the last 15 min ⚙️ (or since the last "No"), and no cooling ended in the last 10 min.
 - Yes → cooling command (5.3). No → 15-min suppression; count Nos per day (3 → "alert less often?").
 - In `cooling_mode = auto`: skip the question, start cooling, announce it. Auto-starts limited to 1 per 30 min ⚙️.
+- ✅ *Decision 2026-11-16 (team): the conditions above are checked on every valid second while a high episode is on, not only at its start. If stress stays high after a No, after cooling ends, or after a mute, she is asked again once the 15 min cooldown / 10 min post-cooling quiet / mute is over — matching `03` Flow 3 ("no new prompt for 15 minutes") and `12` §6 flow 3, which rank above this document.*
+- 🟡 *"Should I alert you less often today?" → Yes uses the Fewer sustain window (90 s) for the rest of that local day (`02` §12). The "Cooling can't start right now" card closes with OK without counting a No.*
 
 ### 5.3 Cooling
 - Duration = `settings.cooling_minutes` (default 10). One extension of +10 min allowed. Hard cap 20 min continuous, then 5 min rest (firmware enforces with status `3`).

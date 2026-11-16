@@ -23,11 +23,18 @@ export const en = {
     spedUp: 'Demo — sped up',
   },
   prompt: {
+    cantCool: 'Cooling can\'t start right now. Please find shade and drink water.',
     highStress: 'Your stress is high. Should we cool around your head now?',
     yesCool: 'Yes — Cool',
     no: 'No',
   },
   cool: {
+    timeLeft: '{{time}} left',
+    failed: 'Couldn\'t start cooling.',
+    starting: 'Starting…',
+    extend: '+{{minutes}} minutes',
+    auto: 'Cooling started because your stress is high.',
+    on: 'Cooling is on. Take a break: find shade and drink water.',
     start: 'Cool Around My Head',
     stop: 'Stop Cooling',
   },
@@ -70,7 +77,13 @@ export const en = {
     coolingOn: 'Cooling is on',
     coolingOff: 'Cooling is off',
   },
+  alertLess: {
+    question: 'Should I alert you less often today?',
+  },
   common: {
+    no: 'No',
+    yes: 'Yes',
+    ok: 'OK',
     playVoice: 'Play voice',
     back: 'Back',
   },

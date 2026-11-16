@@ -11,3 +11,11 @@ export function formatNumber(value: number, lang: Lang): string {
 export function formatClock(epochMs: number, lang: Lang): string {
   return new Intl.DateTimeFormat(LOCALE[lang], { hour: '2-digit', minute: '2-digit' }).format(new Date(epochMs));
 }
+
+/** "9:05" as a countdown in the language's digits (Calm card timer, 03 Flow 3). */
+export function formatCountdown(totalSeconds: number, lang: Lang): string {
+  const s = Math.max(0, Math.ceil(totalSeconds));
+  const minutes = new Intl.NumberFormat(LOCALE[lang]).format(Math.floor(s / 60));
+  const seconds = new Intl.NumberFormat(LOCALE[lang], { minimumIntegerDigits: 2 }).format(s % 60);
+  return `${minutes}:${seconds}`;
+}

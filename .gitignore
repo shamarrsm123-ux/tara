@@ -42,3 +42,6 @@ yarn-error.*
 
 # test coverage
 coverage/
+
+# demo recordings (large binaries; share separately)
+media/

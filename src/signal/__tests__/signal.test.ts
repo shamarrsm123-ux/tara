@@ -208,6 +208,16 @@ describe('EMA smoothing (07 §4.2)', () => {
     expect((r.calm as number) + (r.stress as number)).toBeCloseTo(100);
   });
 
+  test('replacing the baseline keeps the smoothing (no jump or reset)', () => {
+    const clock = fakeClock();
+    const sc = new StressComputer(unit, clock);
+    sc.push(withIndex(0, 0));
+    sc.replaceBaseline({ m: 0, s: 0.5, isDefault: false });
+    clock.mono += 1000;
+    // EMA continues from 0 toward 1: x̄ = 0.0952, z = 0.19 → S ≈ 33.8 (a reset would give z = 2 → S = 70).
+    expect(sc.push(withIndex(1, 1)).stress).toBeCloseTo(30 + 20 * ((1 - Math.exp(-0.1)) / 0.5), 1);
+  });
+
   test('dropped packets make the next seconds invalid', () => {
     const clock = fakeClock();
     const sc = new StressComputer(unit, clock);

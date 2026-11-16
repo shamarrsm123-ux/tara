@@ -165,6 +165,82 @@ describe('high-stress prompt (07 §5.2, 12 §2.2)', () => {
   });
 });
 
+describe('re-asking while stress stays high (03 Flow 3, 12 §6 flow 3; decision 2026-11-16)', () => {
+  test('after a No, asks again once the 15 min are over if still high', () => {
+    const rig = new Rig();
+    rig.ticks(61, CALM_HIGH);
+    rig.send({ t: 'promptAnswer', yes: false });
+    expect(has(rig.ticks(15 * 60 - 1, CALM_HIGH), 'showPrompt')).toBe(false);
+    expect(has(rig.ticks(2, CALM_HIGH), 'showPrompt')).toBe(true);
+  });
+
+  test('after cooling ends, asks again once the 10 min quiet and the 15 min cooldown are over', () => {
+    const rig = new Rig();
+    rig.status();
+    rig.ticks(61, CALM_HIGH);
+    rig.send({ t: 'promptAnswer', yes: true });
+    rig.status('on');
+    rig.ticks(60, CALM_HIGH);
+    rig.send({ t: 'userCool', on: false });
+    rig.status('off');
+    expect(has(rig.ticks(14 * 60 - 1, CALM_HIGH), 'showPrompt')).toBe(false);
+    expect(has(rig.ticks(62, CALM_HIGH), 'showPrompt')).toBe(true);
+  });
+
+  test('a mute that ends during a high episode lets the prompt through', () => {
+    const rig = new Rig();
+    rig.send({ t: 'mute', untilMs: 2 * MIN });
+    expect(has(rig.ticks(119, CALM_HIGH), 'showPrompt')).toBe(false);
+    expect(has(rig.ticks(2, CALM_HIGH), 'showPrompt')).toBe(true);
+  });
+});
+
+describe('"alert less often?" and the blocked-cooling card', () => {
+  const threeNos = (rig: Rig) => {
+    for (let i = 0; i < 3; i += 1) {
+      rig.ticks(61, CALM_HIGH);
+      rig.send({ t: 'promptAnswer', yes: false });
+      calmDown(rig);
+      rig.advance(15 * MIN);
+    }
+  };
+
+  test('Yes uses the longer "fewer" window (90 s) for the rest of the day', () => {
+    const rig = new Rig();
+    threeNos(rig);
+    expect(rig.engine.snapshot().isAskingAlertLess).toBe(true);
+    rig.send({ t: 'alertLessAnswer', yes: true });
+    expect(rig.engine.snapshot()).toMatchObject({ isAskingAlertLess: false, isAlertLessToday: true });
+    expect(has(rig.ticks(90, CALM_HIGH), 'showPrompt')).toBe(false);
+    expect(has(rig.ticks(1, CALM_HIGH), 'showPrompt')).toBe(true);
+  });
+
+  test('No keeps the normal window', () => {
+    const rig = new Rig();
+    threeNos(rig);
+    rig.send({ t: 'alertLessAnswer', yes: false });
+    expect(rig.engine.snapshot().isAlertLessToday).toBe(false);
+    expect(has(rig.ticks(61, CALM_HIGH), 'showPrompt')).toBe(true);
+  });
+
+  test('the next day is back to normal', () => {
+    const rig = new Rig();
+    threeNos(rig);
+    rig.send({ t: 'alertLessAnswer', yes: true });
+    rig.wallDays = 1;
+    expect(rig.engine.snapshot().isAlertLessToday).toBe(false);
+    expect(has(rig.ticks(61, CALM_HIGH), 'showPrompt')).toBe(true);
+  });
+
+  test('dismissing the "can\'t cool right now" card hides it without counting a No', () => {
+    const rig = new Rig();
+    rig.ticks(61, CALM_HIGH);
+    expect(rig.send({ t: 'promptDismiss' })).toEqual([{ a: 'hidePrompt' }]);
+    expect(events(rig.log)).not.toContain('prompt_no');
+    expect(rig.send({ t: 'promptDismiss' })).toEqual([]);
+  });
+});
+
 describe('automatic cooling (07 §5.2, 03 Flow 9.4)', () => {
   test('cools without asking; a second auto-start within 30 min is blocked', () => {
     const rig = new Rig({ coolingMode: 'auto' });

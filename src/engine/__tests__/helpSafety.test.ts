@@ -20,12 +20,16 @@ describe('help question (07 §5.4, 12 §2.2)', () => {
     expect(has(rig.ticks(601, CALM_VERY_HIGH), 'askHelp')).toBe(true);
   });
 
-  test('never asks without a prior prompt or cooling in the episode', () => {
+  test('the help question only ever comes after the prompt (or cooling) in that episode', () => {
     const rig = new Rig();
     rig.send({ t: 'mute', untilMs: 2 * MIN });
-    rig.ticks(61, CALM_HIGH); // episode starts muted: no prompt
+    rig.ticks(61, CALM_HIGH); // episode starts muted: no prompt, so no help question either
+    expect(has(rig.log, 'askHelp') || has(rig.log, 'showPrompt')).toBe(false);
     rig.send({ t: 'mute', untilMs: null });
-    expect(has(rig.ticks(900, CALM_VERY_HIGH), 'askHelp')).toBe(false);
+    rig.ticks(900, CALM_VERY_HIGH);
+    const kinds = rig.log.map((a) => a.a);
+    expect(kinds.indexOf('showPrompt')).toBeGreaterThanOrEqual(0);
+    expect(kinds.indexOf('askHelp')).toBeGreaterThan(kinds.indexOf('showPrompt'));
   });
 
   test('60 min cooldown after an engine-initiated question', () => {

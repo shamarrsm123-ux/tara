@@ -12,7 +12,7 @@ import type { FoundTarha } from '../shared/tarhaSource';
 import { playHaptic } from '../ui/haptics';
 import { CalibrateScreen } from '../ui/screens/CalibrateScreen';
 import { ConnectScreen, type ConnectPhase } from '../ui/screens/ConnectScreen';
-import { HomeScreen } from '../ui/screens/HomeScreen';
+import { HomeScreen, isCoolingActive } from '../ui/screens/HomeScreen';
 import { LanguageScreen } from '../ui/screens/LanguageScreen';
 import { WelcomeScreen } from '../ui/screens/WelcomeScreen';
 import { UiProvider } from '../ui/theme/UiProvider';
@@ -45,6 +45,10 @@ export function TryFlow() {
   const hasStartedScenario = useRef(false);
   const lang = state.lang ?? 'en';
   const snapshot = useSnapshot(runtime?.session ?? null);
+  const snapshotRef = useRef(snapshot);
+  useEffect(() => {
+    snapshotRef.current = snapshot;
+  }, [snapshot]);
 
   const onAction = useCallback(
     (action: EngineAction) => {
@@ -60,7 +64,9 @@ export function TryFlow() {
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (!canGoBack(state)) return false;
+      // 03 §0.2: no back while cooling is active on Screen 3 — Stop Cooling is the action.
+      const isCooling = state.screen === 'home' && snapshotRef.current !== null && isCoolingActive(snapshotRef.current);
+      if (!canGoBack(state) || isCooling) return isCooling;
       dispatch({ type: 'back' });
       return true;
     });
@@ -148,8 +154,17 @@ export function TryFlow() {
           onBack={back}
         />
       )}
-      {state.screen === 'home' && snapshot !== null && (
-        <HomeScreen snapshot={snapshot} demo={homeDemo} onCool={(on) => runtime?.session.dispatch({ t: 'userCool', on })} onBack={back} />
+      {state.screen === 'home' && snapshot !== null && runtime !== null && (
+        <HomeScreen
+          snapshot={snapshot}
+          demo={homeDemo}
+          onCool={(on) => runtime.session.dispatch({ t: 'userCool', on })}
+          onExtend={() => runtime.session.dispatch({ t: 'extendCooling' })}
+          onPromptAnswer={(yes) => runtime.session.dispatch({ t: 'promptAnswer', yes })}
+          onPromptDismiss={() => runtime.session.dispatch({ t: 'promptDismiss' })}
+          onAlertLess={(yes) => runtime.session.dispatch({ t: 'alertLessAnswer', yes })}
+          onBack={back}
+        />
       )}
     </UiProvider>
   );

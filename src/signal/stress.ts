@@ -58,7 +58,7 @@ export function zoneForStress(stress: number): Zone {
 }
 
 export class StressComputer {
-  private readonly baseline: Baseline;
+  private baseline: Baseline;
   private readonly clock: Clock;
   private readonly seq = new SeqTracker();
   private ema: number | null = null;
@@ -67,6 +67,11 @@ export class StressComputer {
   constructor(baseline: Baseline, clock: Clock) {
     this.baseline = baseline;
     this.clock = clock;
+  }
+
+  /** New baseline (after Learn Your Calm, Skip, or Recalibrate) without resetting the smoothing (07 §4.2). */
+  replaceBaseline(baseline: Baseline): void {
+    this.baseline = baseline;
   }
 
   push(sample: MetricsSample): StressReading {

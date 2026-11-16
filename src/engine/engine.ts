@@ -53,6 +53,9 @@ export interface EngineState {
   prompt: PromptState;
   help: HelpState;
   muteUntilMs: number | null;
+  /** Local day on which she asked to be alerted less often (02 §12). */
+  alertLessDay: string | null;
+  isAskingAlertLess: boolean;
   /** In this episode, cooling ran or the prompt was shown (07 §5.4 precondition for the help question). */
   hasEpisodeIntervention: boolean;
   lastZone: Zone;
@@ -69,6 +72,8 @@ export function initialEngineState(settings: Settings = DEFAULT_SETTINGS): Engin
     prompt: { isShowing: false, cooldownUntilMs: NEVER, lastAutoStartMs: NEVER, noCount: 0, noDay: null, alertLessAskedDay: null },
     help: { window: null, isAsking: false, cooldownUntilMs: NEVER },
     muteUntilMs: null,
+    alertLessDay: null,
+    isAskingAlertLess: false,
     hasEpisodeIntervention: false,
     lastZone: 'unknown',
   };
@@ -84,8 +89,12 @@ const isMuted = (s: EngineState, now: number) => s.muteUntilMs !== null && now <
 const voice = (s: EngineState, line: VoiceLineId): EngineAction[] => (s.settings.speakAutomatically ? [{ a: 'speak', line }] : []);
 const withCooling = (s: EngineState, step: Step<CoolingState>): Step<EngineState> => ({ state: { ...s, cooling: step.state }, actions: step.actions });
 
-/** 07 §5.2: on an episode start, ask (or auto-cool) unless cooling is on, muted, cooling down, or post-cooling quiet. */
-function onEpisodeStart(s: EngineState, now: number): Step<EngineState> {
+/**
+ * 07 §5.2 / 03 Flow 3: while a high episode is on, ask (or auto-cool) whenever nothing blocks it — cooling on,
+ * muted, the 15 min cooldown after a prompt, or the 10 min quiet after cooling. So if stress stays high after a
+ * No or after cooling, she is asked again once the quiet time is over (decision 2026-11-16, 03 > 07).
+ */
+function maybePrompt(s: EngineState, now: number): Step<EngineState> {
   const isBlocked =
     s.cooling.display !== 'off' || isMuted(s, now) || now < s.prompt.cooldownUntilMs || now < s.cooling.quietUntilMs || s.prompt.isShowing;
   if (isBlocked) return { state: s, actions: [] };
@@ -149,10 +158,11 @@ export interface EngineTiming {
   sustainS?: number;
 }
 
-function onTick(s0: EngineState, calm: number | null, zone: Zone, valid: boolean, now: number, timing: EngineTiming): Step<EngineState> {
+function onTick(s0: EngineState, calm: number | null, zone: Zone, valid: boolean, now: number, day: string, timing: EngineTiming): Step<EngineState> {
   const stress = calm === null ? null : 100 - calm;
   const cool = withCooling(s0, tickCooling(s0.cooling, now));
-  const sustainS = timing.sustainS ?? SUSTAIN_S[cool.state.settings.alertSensitivity];
+  const sensitivity = cool.state.alertLessDay === day ? 'fewer' : cool.state.settings.alertSensitivity;
+  const sustainS = timing.sustainS ?? SUSTAIN_S[sensitivity];
   const ep = stepEpisode(cool.state.episode, stress, valid, now, sustainS);
   const s1: EngineState = {
     ...cool.state,
@@ -161,7 +171,7 @@ function onTick(s0: EngineState, calm: number | null, zone: Zone, valid: boolean
   };
   const episodeActions: EngineAction[] =
     ep.change === 'started' ? [{ a: 'logEvent', type: 'high_episode_start' }] : ep.change === 'ended' ? [{ a: 'logEvent', type: 'high_episode_end' }] : [];
-  const prompt = ep.change === 'started' ? onEpisodeStart(s1, now) : { state: s1, actions: [] };
+  const prompt = s1.episode.phase === 'high' ? maybePrompt(s1, now) : { state: s1, actions: [] };
   const s2 = { ...prompt.state, hasEpisodeIntervention: prompt.state.hasEpisodeIntervention || prompt.state.cooling.display === 'on' };
   const help = updateHelp(s2, stress, valid, now);
   const calmer = updateCalmer(help.state, zone, valid);
@@ -178,7 +188,11 @@ function onPromptAnswer(s: EngineState, yes: boolean, now: number, day: string):
   const noCount = (s.prompt.noDay === day ? s.prompt.noCount : 0) + 1;
   const shouldAsk = noCount === NO_COUNT_ASK && s.prompt.alertLessAskedDay !== day;
   return {
-    state: { ...s, prompt: { ...prompt, noCount, noDay: day, alertLessAskedDay: shouldAsk ? day : s.prompt.alertLessAskedDay } },
+    state: {
+      ...s,
+      isAskingAlertLess: s.isAskingAlertLess || shouldAsk,
+      prompt: { ...prompt, noCount, noDay: day, alertLessAskedDay: shouldAsk ? day : s.prompt.alertLessAskedDay },
+    },
     actions: [{ a: 'hidePrompt' }, { a: 'logEvent', type: 'prompt_no' }, ...(shouldAsk ? [{ a: 'askAlertLess' as const }] : [])],
   };
 }
@@ -203,11 +217,17 @@ function onStatus(s: EngineState, input: Extract<EngineInput, { t: 'status' }>, 
 export function reduce(s: EngineState, input: EngineInput, now: number, day: string, timing: EngineTiming = {}): Step<EngineState> {
   switch (input.t) {
     case 'tick':
-      return onTick(s, input.calm, input.zone, input.valid, now, timing);
+      return onTick(s, input.calm, input.zone, input.valid, now, day, timing);
     case 'status':
       return onStatus(s, input, now);
     case 'promptAnswer':
       return onPromptAnswer(s, input.yes, now, day);
+    case 'promptDismiss':
+      return s.prompt.isShowing
+        ? { state: { ...s, prompt: { ...s.prompt, isShowing: false, cooldownUntilMs: now + PROMPT_COOLDOWN_MIN * MS_PER_MIN } }, actions: [{ a: 'hidePrompt' }] }
+        : { state: s, actions: [] };
+    case 'alertLessAnswer':
+      return { state: { ...s, isAskingAlertLess: false, alertLessDay: input.yes ? day : s.alertLessDay }, actions: [] };
     case 'helpAnswer':
       return { state: { ...s, help: { ...s.help, isAsking: false } }, actions: [] };
     case 'userCool':
@@ -225,15 +245,19 @@ export function reduce(s: EngineState, input: EngineInput, now: number, day: str
   }
 }
 
-export function snapshotOf(s: EngineState, now: number): EngineSnapshot {
+export function snapshotOf(s: EngineState, now: number, day: string): EngineSnapshot {
   return {
     episode: s.episode.phase,
     isPromptShowing: s.prompt.isShowing,
+    isAlertLessToday: s.alertLessDay === day,
+    isAskingAlertLess: s.isAskingAlertLess,
     isHelpAsking: s.help.isAsking,
     cooling: s.cooling.display,
     coolBlockReason: coolBlockReason(s.cooling, now),
     hasCoolingStartFailed: s.cooling.hasStartFailed,
+    coolingStartedAtMono: s.cooling.session?.startMs ?? null,
     coolingEndsAtMono: s.cooling.session?.plannedEndMs ?? null,
+    coolingReason: s.cooling.session?.reason ?? s.cooling.pendingReason,
     canExtendCooling: canExtend(s.cooling),
     isMuted: isMuted(s, now),
     isConnected: s.cooling.isConnected,
@@ -255,7 +279,7 @@ export function createEngine(clock: Clock, settings: Settings = DEFAULT_SETTINGS
       return result.actions;
     },
     snapshot() {
-      return snapshotOf(state, clock.monotonicMs());
+      return snapshotOf(state, clock.monotonicMs(), localDayKey(clock.nowMs()));
     },
   };
 }

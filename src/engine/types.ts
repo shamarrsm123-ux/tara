@@ -6,6 +6,10 @@ export type EngineInput =
   | { t: 'tick'; calm: number | null; zone: Zone; valid: boolean }
   | { t: 'status'; status: TarhaStatus; connected: boolean }
   | { t: 'promptAnswer'; yes: boolean }
+  /** 🟡 Closes the "Cooling can't start right now" card without counting a No (03 Flow 3 step 6). */
+  | { t: 'promptDismiss' }
+  /** 🟡 Answer to "Should I alert you less often today?" — Yes uses the longer "fewer" window today (02 §12). */
+  | { t: 'alertLessAnswer'; yes: boolean }
   | { t: 'helpAnswer'; yes: boolean }
   | { t: 'userCool'; on: boolean }
   | { t: 'extendCooling' }
@@ -54,11 +58,16 @@ export type EpisodePhase = 'none' | 'pending' | 'high';
 export interface EngineSnapshot {
   episode: EpisodePhase;
   isPromptShowing: boolean;
+  isAlertLessToday: boolean;
+  /** "Should I alert you less often today?" is waiting for an answer. */
+  isAskingAlertLess: boolean;
   isHelpAsking: boolean;
   cooling: CoolingDisplay;
   coolBlockReason: CoolBlockReason | null;
   hasCoolingStartFailed: boolean;
+  coolingStartedAtMono: number | null;
   coolingEndsAtMono: number | null;
+  coolingReason: CoolOnReason | null;
   canExtendCooling: boolean;
   isMuted: boolean;
   isConnected: boolean;

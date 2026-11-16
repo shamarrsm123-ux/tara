@@ -24,11 +24,18 @@ export const am_ET: Strings = {
     spedUp: 'ሙከራ — የተፋጠነ',
   },
   prompt: {
+    cantCool: 'ማቀዝቀዝ አሁን መጀመር አይችልም። እባክሽ ጥላ ፈልጊ፣ ውሃ ጠጪ።',
     highStress: 'ውጥረትሽ ከፍተኛ ነው። አሁን በራስሽ ዙሪያ እናቀዝቅዝ?',
     yesCool: 'አዎ — አቀዝቅዝ',
     no: 'አይ',
   },
   cool: {
+    timeLeft: '{{time}} ቀርቷል',
+    failed: 'ማቀዝቀዝ መጀመር አልተቻለም።',
+    starting: 'እየጀመረ ነው…',
+    extend: '+{{minutes}} ደቂቃ',
+    auto: 'ውጥረትሽ ስለበዛ ማቀዝቀዝ ተጀምሯል።',
+    on: 'ማቀዝቀዝ በርቷል። እረፍት ውሰጂ፦ ጥላ ፈልጊ፣ ውሃ ጠጪ።',
     start: 'በራሴ ዙሪያ አቀዝቅዝ',
     stop: 'ማቀዝቀዝ አቁም',
   },
@@ -71,7 +78,13 @@ export const am_ET: Strings = {
     coolingOn: 'ማቀዝቀዝ በርቷል',
     coolingOff: 'ማቀዝቀዝ ጠፍቷል',
   },
+  alertLess: {
+    question: 'ዛሬ ያነሰ ላስጠነቅቅሽ?',
+  },
   common: {
+    no: 'አይ',
+    yes: 'አዎ',
+    ok: 'እሺ',
     playVoice: 'ድምፅ አጫውት',
     back: 'ተመለሺ',
   },

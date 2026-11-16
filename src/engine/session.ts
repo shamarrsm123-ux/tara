@@ -39,6 +39,8 @@ export interface MonitorSnapshot {
   points: readonly GraphPoint[];
   coolingBands: readonly TimeBand[];
   nowMs: number;
+  /** Monotonic time of this snapshot, for countdowns against `engine.coolingEndsAtMono`. */
+  nowMono: number;
   engine: EngineSnapshot;
   /** How long the fit has been continuously Good (0 when not). */
   goodFitMs: number;
@@ -87,7 +89,7 @@ function updateBands(bands: readonly TimeBand[], isCooling: boolean, wasCooling:
 export function createMonitorSession(options: MonitorOptions): MonitorSession {
   const { source, clock } = options;
   const engine = createEngine(clock, options.settings ?? DEFAULT_SETTINGS, options.timing ?? {});
-  let computer = new StressComputer(options.baseline, clock);
+  const computer = new StressComputer(options.baseline, clock);
   let calibrator: Calibrator | null = null;
   let goodSinceMs: number | null = null;
   const fitStabilizer = new FitStabilizer();
@@ -103,6 +105,7 @@ export function createMonitorSession(options: MonitorOptions): MonitorSession {
     points: [],
     coolingBands: [],
     nowMs: clock.nowMs(),
+    nowMono: clock.monotonicMs(),
     engine: engine.snapshot(),
     goodFitMs: 0,
     calibration: null,
@@ -110,7 +113,7 @@ export function createMonitorSession(options: MonitorOptions): MonitorSession {
   };
 
   const applyBaseline = (baseline: Baseline) => {
-    computer = new StressComputer(baseline, clock);
+    computer.replaceBaseline(baseline);
     snapshot = { ...snapshot, baseline };
   };
 
@@ -128,7 +131,7 @@ export function createMonitorSession(options: MonitorOptions): MonitorSession {
     const nowMs = clock.nowMs();
     const isCooling = engineSnap.cooling === 'on';
     const wasCooling = snapshot.engine.cooling === 'on';
-    snapshot = { ...snapshot, ...patch, nowMs, engine: engineSnap, coolingBands: updateBands(snapshot.coolingBands, isCooling, wasCooling, nowMs) };
+    snapshot = { ...snapshot, ...patch, nowMs, nowMono: clock.monotonicMs(), engine: engineSnap, coolingBands: updateBands(snapshot.coolingBands, isCooling, wasCooling, nowMs) };
     listeners.emit();
   };
 

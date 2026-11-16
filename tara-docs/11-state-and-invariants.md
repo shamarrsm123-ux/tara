@@ -54,6 +54,7 @@ Invalid: `trying → wiping` (nothing to wipe; just reset), any persistence whil
 | From | To | Condition / Effect |
 |---|---|---|
 | `idle` | `showing` | Episode → `high` AND cooling off AND not muted AND no prompt-cooldown AND not in post-cooling quiet |
+| `idle` | `showing` | ✅ *(2026-11-16)* Episode still `high` when the cooldown / quiet / mute ends — see `07` §5.2 |
 | `showing` | `answeredYes` | Yes → emit `coolOn(reason: prompt)` |
 | `showing` | `answeredNo` | No → noCount++ ; if noCount == 3 → `askAlertLess` |
 | `answeredYes/No` | `cooldown` | Immediately |

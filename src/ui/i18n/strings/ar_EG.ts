@@ -24,11 +24,18 @@ export const ar_EG: Strings = {
     spedUp: 'تجربة — مُسرَّعة',
   },
   prompt: {
+    cantCool: 'التبريد مش هيقدر يشتغل دلوقتي. لو سمحتي اقعدي في الضل واشربي مية.',
     highStress: 'توترك عالي. نبرّد حوالين راسك دلوقتي؟',
     yesCool: 'أيوه — برّد',
     no: 'لأ',
   },
   cool: {
+    timeLeft: 'فاضل {{time}}',
+    failed: 'التبريد ما اشتغلش.',
+    starting: 'بيشتغل…',
+    extend: '+{{minutes}} دقايق',
+    auto: 'التبريد اشتغل لأن توترك عالي.',
+    on: 'التبريد شغّال. خدي استراحة: اقعدي في الضل واشربي مية.',
     start: 'برّد حوالين راسي',
     stop: 'وقّف التبريد',
   },
@@ -71,7 +78,13 @@ export const ar_EG: Strings = {
     coolingOn: 'التبريد شغّال',
     coolingOff: 'التبريد مقفول',
   },
+  alertLess: {
+    question: 'أنبّهك أقل النهارده؟',
+  },
   common: {
+    no: 'لأ',
+    yes: 'أيوه',
+    ok: 'تمام',
     playVoice: 'شغّلي الصوت',
     back: 'رجوع',
   },
