@@ -18,8 +18,8 @@ describe('contrast math', () => {
 describe('Sun palette is the 04a table (zone and cooling colors still 04 §3)', () => {
   test('uses the specified colors', () => {
     const { bg, surface, text, textMuted, sand, calm, rising, high, cool, demo } = PALETTES.sun;
-    expect([bg, surface, text, textMuted, sand]).toEqual(['#F4F1EC', '#FFFFFF', '#1C1A17', '#4F4842', '#E7E1D8']);
-    expect([PALETTES.sun.accent, PALETTES.sun.ink, PALETTES.sun.chip]).toEqual(['#E96B10', '#1E1B18', '#ECE8E2']);
+    expect([bg, surface, text, textMuted, sand]).toEqual(['#F5F5F7', '#FFFFFF', '#111114', '#52525B', '#E5E5EA']);
+    expect([PALETTES.sun.accent, PALETTES.sun.ink, PALETTES.sun.chip]).toEqual(['#E96B10', '#18181B', '#EFEFF2']);
     expect([calm, rising, high, cool, demo]).toEqual(['#1B7F3B', '#B87900', '#C62828', '#1565C0', '#FFD54F']);
   });
 

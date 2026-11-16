@@ -9,7 +9,7 @@
 
 ## 0. Intent
 
-TARA should look like it belongs inside a modern, warm, premium mobile app: soft off-white surfaces, big rounded white cards, one confident orange accent, near-black pills and panels, and a **segmented arc meter**. The references are contemporary fitness / nutrition apps (orange + charcoal on warm light grey). We match their *visual language*, not their content or imagery.
+TARA should look like it belongs inside a modern, warm, premium mobile app: clean neutral near-white surfaces (no beige — 2026-11-16 revision), big rounded white cards, one confident orange accent, near-black pills and panels, and a **segmented arc meter**. The references are contemporary fitness / nutrition apps (orange + charcoal on neutral light grey). We match their *visual language*, not their content or imagery.
 
 The rules from `04` §0–1 still win when they conflict with "looking like the reference": she must understand it in one glance, in bright sun, without reading; every meaning is color + icon/face + word.
 
@@ -27,18 +27,18 @@ The rules from `04` §0–1 still win when they conflict with "looking like the 
 
 | Token | Value | Use |
 |---|---|---|
-| `bg` | `#F4F1EC` | Screen background (warm light grey) |
+| `bg` | `#F5F5F7` | Screen background (neutral near-white) |
 | `surface` | `#FFFFFF` | Cards, round icon buttons |
-| `chip` | `#ECE8E2` | Chips and inactive pills |
-| `text` | `#1C1A17` | Primary text |
-| `textMuted` | `#5B544C` | Secondary text |
+| `chip` | `#EFEFF2` | Chips and inactive pills |
+| `text` | `#111114` | Primary text |
+| `textMuted` | `#52525B` | Secondary text |
 | `accent` | `#E96B10` | Primary buttons, selection, brand (white bold text ≥ 20sp on it) |
-| `accentSoft` | `#FDE7D6` | Soft orange chips |
-| `ink` | `#1E1B18` | Dark pills, stat panel, bottom bar; `onInk` `#FFFFFF` |
+| `accentSoft` | `#FFEEE2` | Soft orange chips |
+| `ink` | `#18181B` | Dark pills, stat panel, bottom bar; `onInk` `#FFFFFF` |
 | `calm` / `rising` / `high` | `#1B7F3B` / `#B87900` / `#C62828` | Zones — unchanged from `04` §3 |
 | `cool` | `#1565C0` | Cooling only |
 | `demo` | `#FFD54F` | Demo ribbon only |
-| `track` | `#E7E1D8` | Empty meter segments, graph track |
+| `track` | `#E5E5EA` | Empty meter segments, graph track |
 
 Night mirrors these (dark warm surfaces, same accent and zone hues lightened for contrast); values live in `src/ui/theme/tokens.ts` and are contrast-tested. Red stays reserved for High stress and Delete Everything.
 
