@@ -8,10 +8,10 @@
 namespace tara {
 
 // 128-bit UUIDs (app: src/ble/protocol.ts UUIDS)
-static const char* SERVICE_UUID = "7a1a0001-5f3e-4b8a-9d2c-1e6f0a7b3c00";
-static const char* METRICS_UUID = "7a1a0002-5f3e-4b8a-9d2c-1e6f0a7b3c00";
-static const char* STATUS_UUID = "7a1a0003-5f3e-4b8a-9d2c-1e6f0a7b3c00";
-static const char* CONTROL_UUID = "7a1a0004-5f3e-4b8a-9d2c-1e6f0a7b3c00";
+inline constexpr const char* SERVICE_UUID = "7a1a0001-5f3e-4b8a-9d2c-1e6f0a7b3c00";
+inline constexpr const char* METRICS_UUID = "7a1a0002-5f3e-4b8a-9d2c-1e6f0a7b3c00";
+inline constexpr const char* STATUS_UUID = "7a1a0003-5f3e-4b8a-9d2c-1e6f0a7b3c00";
+inline constexpr const char* CONTROL_UUID = "7a1a0004-5f3e-4b8a-9d2c-1e6f0a7b3c00";
 
 static const uint8_t PROTOCOL_VERSION = 1;
 static const uint8_t METRICS_BYTES = 14;

@@ -76,3 +76,20 @@ describe('direction and formatting', () => {
     expect(formatClock(noonUtc, 'en')).toMatch(/\d{1,2}:05/);
   });
 });
+
+describe('lock-screen texts are neutral (02 §8.13, 12 §4 P12)', () => {
+  const KINDS = ['monitoring', 'coolBreak', 'reminder', 'batteryLow', 'batteryLock', 'batteryOff', 'phoneBatteryLow', 'helpQuestion'] as const;
+  const REVEALING: Record<string, RegExp> = {
+    en: /stress|high|anx|mood|cycle|pmdd|brain|calm|alert/i,
+    ar_EG: /توتر|قلق|مزاج|دورة|مخ|هادي/,
+    am_ET: /ጭንቀት|ስሜት|አእምሮ/,
+  };
+  test.each(LANGS)('%s: every lock-screen line says nothing about her state', (lang) => {
+    const t = translatorFor(lang);
+    KINDS.forEach((kind) => {
+      const text = t(`notify.${kind}`);
+      expect(text.length).toBeGreaterThan(0);
+      expect(text).not.toMatch(REVEALING[lang]!);
+    });
+  });
+});

@@ -125,3 +125,12 @@ export function IconClock({ color, size = DEFAULT_SIZE }: IconProps) {
     </Svg>
   );
 }
+
+export function IconBellOff({ color, size = DEFAULT_SIZE }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Path d="M9 22 V15 Q9 8 16 8 Q23 8 23 15 V22 L25 24 H7 Z M13 27 Q16 29 19 27" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" strokeLinecap="round" />
+      <Path d="M5 5 L27 27" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    </Svg>
+  );
+}

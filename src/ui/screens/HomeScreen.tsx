@@ -2,8 +2,8 @@
 // meter, the cooling card while cooling, "Right now" tiles (tarha · battery · cooling) and the last 10 minutes.
 // Calm shows only after 5 s of Good fit (11 §2). Back is not offered while cooling is active (03 §0.2). The
 // Cool button lives in the tab bar (04a v2 D6); prompts are drawn over every tab by MainShell.
-import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { GOOD_FIT_SHOW_MS, GRAPH_WINDOW_MS, type MonitorSnapshot } from '../../engine/session';
 import { formatDate, formatNumber } from '../i18n/format';
 import { CoolingCard } from '../components/ActionCards';
@@ -16,7 +16,9 @@ import { BackButton, ScreenFrame } from '../components/ScreenFrame';
 import { LogoMark } from '../art/LogoMark';
 import type { BackdropMood } from '../theme/tokens';
 import { Card, SectionTitle, type CardTint } from '../components/Surface';
-import { IconBattery, IconLink, IconSnow } from '../icons/Icons';
+import { IconBattery, IconBellOff, IconLink, IconSnow } from '../icons/Icons';
+import { MuteChoices, MutedNotice } from '../components/MuteControl';
+import { muteUntilMono } from '../../engine/mute';
 import { useUi } from '../theme/UiProvider';
 import { RADIUS, SPACE, TOUCH_MIN } from '../theme/tokens';
 
@@ -28,6 +30,8 @@ interface HomeScreenProps {
   onBack?: () => void;
   /** Try story: shown after the cooling scene to go on to Screen 4. */
   onContinue?: () => void;
+  /** Mute alerts until this monotonic time; null turns alerts back on (03 Flow 7 step 5). */
+  onMute?: (untilMono: number | null) => void;
 }
 
 const MS_PER_S = 1000;
@@ -50,7 +54,7 @@ export function moodFor(s: MonitorSnapshot): BackdropMood {
   return s.zone;
 }
 
-function Greeting({ snapshot, onBack }: { snapshot: MonitorSnapshot; onBack?: () => void }) {
+function Greeting({ snapshot, onBack, onMutePress }: { snapshot: MonitorSnapshot; onBack?: () => void; onMutePress?: () => void }) {
   const { t, lang, palette } = useUi();
   const isConnected = snapshot.connection === 'connected';
   return (
@@ -68,6 +72,17 @@ function Greeting({ snapshot, onBack }: { snapshot: MonitorSnapshot; onBack?: ()
           {formatDate(snapshot.nowMs, lang)}
         </AppText>
       </View>
+      {onMutePress !== undefined && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('mute.button')}
+          onPress={onMutePress}
+          style={({ pressed }) => [styles.avatar, styles.outlined, { borderColor: palette.line, backgroundColor: palette.surface, opacity: pressed ? 0.7 : 1 }]}
+          testID="mute-button"
+        >
+          <IconBellOff color={snapshot.engine.isMuted ? palette.accent : palette.text} size={24} />
+        </Pressable>
+      )}
       <View
         style={[styles.avatar, styles.outlined, { borderColor: palette.line }]}
         accessible
@@ -140,7 +155,8 @@ function RightNow({ snapshot }: { snapshot: MonitorSnapshot }) {
   );
 }
 
-export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinue }: HomeScreenProps) {
+export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinue, onMute }: HomeScreenProps) {
+  const [isChoosingMute, setIsChoosingMute] = useState(false);
   const { t } = useUi();
   const e = snapshot.engine;
   const isCooling = isCoolingActive(snapshot);
@@ -148,7 +164,17 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinu
   const totalS = e.coolingEndsAtMono === null || e.coolingStartedAtMono === null ? null : (e.coolingEndsAtMono - e.coolingStartedAtMono) / MS_PER_S;
 
   return (
-    <ScreenFrame testID="screen-home" demo={demo} backdrop={moodFor(snapshot)} header={<Greeting snapshot={snapshot} onBack={isCooling ? undefined : onBack} />}>
+    <ScreenFrame testID="screen-home" demo={demo} backdrop={moodFor(snapshot)} header={<Greeting snapshot={snapshot} onBack={isCooling ? undefined : onBack} onMutePress={onMute !== undefined ? () => setIsChoosingMute((v) => !v) : undefined} />}>
+      {isChoosingMute && onMute !== undefined && (
+        <MuteChoices
+          onChoose={(choice) => {
+            onMute(muteUntilMono(choice, snapshot.nowMs, snapshot.nowMono));
+            setIsChoosingMute(false);
+          }}
+          onCancel={() => setIsChoosingMute(false)}
+        />
+      )}
+      {snapshot.engine.isMuted && onMute !== undefined && <MutedNotice onResume={() => onMute(null)} />}
       <View style={styles.meter}>
         {snapshot.fit !== null && snapshot.fit !== 'good' && <FitChip fit={snapshot.fit} testID="home-fit" />}
         <CalmMeter calm={snapshot.calm} zone={snapshot.zone} status={meterStatusFor(snapshot)} testID="home-meter" />

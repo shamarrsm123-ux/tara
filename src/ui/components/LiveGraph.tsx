@@ -39,6 +39,8 @@ interface LiveGraphProps {
   height?: number;
   /** Replaces the default "Calm over the last N minutes" title. */
   title?: string;
+  /** One point per this many ms (10 s live; longer for a whole day). */
+  bucketMs?: number;
   testID?: string;
 }
 
@@ -60,6 +62,7 @@ export function LiveGraph({
   windowMs,
   height = DEFAULT_HEIGHT,
   title,
+  bucketMs = BUCKET_MS,
   testID,
 }: LiveGraphProps) {
   const { palette, t, lang, isRtl } = useUi();
@@ -79,7 +82,7 @@ export function LiveGraph({
   const onLayout = (e: LayoutChangeEvent) =>
     setWidth(Math.round(e.nativeEvent.layout.width));
   const bars =
-    width > 0 ? barSeries(points, frame, Math.round(windowMs / BUCKET_MS)) : [];
+    width > 0 ? barSeries(points, frame, Math.round(windowMs / bucketMs)) : [];
   const segments = lineSegments(bars, frame);
   const lastBar = [...bars].reverse().find((b) => b.zone !== null);
   const lastPoint = segments[segments.length - 1]?.at(-1);

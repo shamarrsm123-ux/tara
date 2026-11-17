@@ -86,6 +86,8 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 **Acceptance:** 8-hour soak (demo source) with screen off keeps monitoring; notifications neutral on lock screen.
 
+🟡 *Phase 8 notes (2026-11-17): Daily mode = tabs + the Notifee foreground service ("TARA is with you", type connectedDevice) started after saving; lock-screen notifications use only the neutral set and are shown only while the app is in the background (in the app she sees the full card); Mute 30 min / 1 h / rest of today on Home; phone battery via `expo-battery`; My Days reads stored minutes (7 day bars, tap a day, retention footer). The 8-hour acceptance runs as an accelerated soak in Jest; the screen-off soak on a phone joins Phase 13. Delete Everything now cancels all notifications before the wipe (05 §4 step 1).*
+
 ## Phase 9 — Smart Reminders (Screen 4, real)
 - Nightly detection, offer card, schedule/cancel daily reminder, fade handling, decline suppression.
 

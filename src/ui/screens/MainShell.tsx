@@ -10,7 +10,7 @@ import { DemoRibbon } from '../components/DemoRibbon';
 import { TabBar, type MainTab } from '../components/TabBar';
 import { SPACE } from '../theme/tokens';
 import { HomeScreen, isCoolingActive } from './HomeScreen';
-import { MyDaysScreen } from './MyDaysScreen';
+import { MyDaysScreen, type SavedHistory } from './MyDaysScreen';
 import { SafetyScreen, type SavedSafety } from './SafetyScreen';
 
 export interface MainActions {
@@ -23,6 +23,7 @@ export interface MainActions {
   onBack?: () => void;
   /** Try story only: Home → Screen 4 after the cooling scene. */
   onContinue?: () => void;
+  onMute?: (untilMono: number | null) => void;
 }
 
 interface MainShellProps extends MainActions {
@@ -30,6 +31,8 @@ interface MainShellProps extends MainActions {
   demo: { isSpedUp: boolean } | null;
   /** Store-backed settings and Delete Everything once she has saved; null in Try mode. */
   saved: SavedSafety | null;
+  /** Stored history for My Days once she has saved. */
+  history?: SavedHistory | null;
 }
 
 const OVERLAY_SCRIM = 'rgba(28, 28, 30, 0.5)';
@@ -44,7 +47,7 @@ function Overlay({ children, demo }: { children: ReactNode; demo: { isSpedUp: bo
   );
 }
 
-export function MainShell({ snapshot, demo, saved, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack, onContinue }: MainShellProps) {
+export function MainShell({ snapshot, demo, saved, history = null, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack, onContinue, onMute }: MainShellProps) {
   const [tab, setTab] = useState<MainTab>('home');
   const e = snapshot.engine;
   const startCooling = () => {
@@ -59,8 +62,8 @@ export function MainShell({ snapshot, demo, saved, onCool, onExtend, onPromptAns
   return (
     <View style={styles.fill}>
       <View style={styles.fill}>
-        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} onContinue={onContinue} />}
-        {tab === 'myDays' && <MyDaysScreen snapshot={snapshot} demo={demo} />}
+        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} onContinue={onContinue} onMute={onMute} />}
+        {tab === 'myDays' && <MyDaysScreen snapshot={snapshot} demo={demo} history={history} />}
         {tab === 'safety' && <SafetyScreen demo={demo} saved={saved} />}
       </View>
       <TabBar active={tab} onSelect={setTab} isCooling={isCoolingActive(snapshot)} isCoolBlocked={e.coolBlockReason !== null} onCool={startCooling} />

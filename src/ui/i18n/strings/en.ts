@@ -169,6 +169,25 @@ export const en = {
     at_market: 'At the market',
     on_road: 'On the road',
   },
+  notify: {
+    monitoring: 'TARA is with you',
+    coolBreak: 'TARA: time for a cool break.',
+    reminder: 'TARA: time to put on your tarha.',
+    batteryLow: 'TARA: please charge your tarha.',
+    batteryLock: 'TARA: please charge your tarha.',
+    batteryOff: 'TARA: please charge your tarha.',
+    phoneBatteryLow: 'TARA: please charge your phone.',
+    helpQuestion: 'TARA: please open the app.',
+  },
+  mute: {
+    button: 'Pause alerts',
+    m30: '30 minutes',
+    h1: '1 hour',
+    day: 'Rest of today',
+    paused: 'Alerts paused',
+    resume: 'Turn alerts back on',
+    cancel: 'Cancel',
+  },
 };
 
 export type Strings = typeof en;

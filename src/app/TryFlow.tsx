@@ -1,8 +1,8 @@
 // App container (03 Flows L → 6, Daily mode, Flow 13). Composition root below App.tsx: owns the tarha source, the
 // monitoring session and the Store port, so ui/screens only ever see snapshots and callbacks (06 §4). Nothing is
 // stored before Screen 5 "Yes" (11 §1); "No" and Delete Everything return to a fresh install.
-import { useCallback, useEffect, useReducer, useRef, useState, useSyncExternalStore } from 'react';
-import { BackHandler, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from 'react';
+import { AppState, BackHandler, StyleSheet } from 'react-native';
 import { DEMO_TARHA } from '../demo/DemoTarhaSource';
 import type { MonitorSession, MonitorSnapshot } from '../engine/session';
 import type { EngineAction } from '../engine/types';
@@ -29,6 +29,8 @@ import { createBluetooth } from '../ble/createTarhaSource';
 import { systemClock } from '../shared/clock';
 import { createDemoRuntime, createTarhaRuntime, discardRuntime, type Runtime } from './runtime';
 import { useConnect } from './useConnect';
+import { useDailyServices } from './useDailyServices';
+import { createNotifier } from '../notify/createNotifier';
 import { canGoBack, reduceTry, type TryState } from './tryNavigation';
 import { usePersistence } from './usePersistence';
 
@@ -50,6 +52,8 @@ type Notice = 'deleted' | 'deleteFailed' | null;
 export function TryFlow({ store, initial }: TryFlowProps) {
   const [state, dispatch] = useReducer(reduceTry, initial);
   const [bluetooth] = useState(() => createBluetooth(systemClock));
+  const notifier = useMemo(() => createNotifier((key) => translatorFor(state.lang ?? 'en')(`notify.${key}`)), [state.lang]);
+  const notifierRef = useRef(notifier);
   const pairedRef = useRef<FoundTarha | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -71,11 +75,18 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     isPersistingRef.current = isSetUp && isRealTarha;
   }, [isSetUp, isRealTarha]);
   usePersistence(store, runtime?.session ?? null, isSetUp && isRealTarha);
+  const isDaily = isSetUp && state.screen === 'daily';
+  const history = useDailyServices(store, notifier, runtime?.session ?? null, isDaily);
+  useEffect(() => {
+    notifierRef.current = isDaily ? notifier : null;
+  }, [notifier, isDaily]);
 
   const onAction = useCallback(
     (action: EngineAction) => {
       if (action.a === 'speak') playVoice(lang, action.line);
       if (action.a === 'haptic') playHaptic(action.pattern);
+      // Lock-screen notification only when she isn't looking at the app; the full card is in the app (02 §8.13).
+      if (action.a === 'notify' && AppState.currentState !== 'active') void notifierRef.current?.show(action.kind).catch(() => undefined);
       if (action.a === 'logEvent' && isPersistingRef.current) {
         void store.appendEvent({ ts: Date.now(), type: action.type, source: action.source ?? null, origin: 'tarha' }).catch(() => undefined);
       }
@@ -175,10 +186,11 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     dispatch({ type: 'reset' });
   };
 
-  /** Flow 13 step 3, in 05 §4 order: stop cooling, forget the tarha (🟡 reminders: none exist before Phase 8), then the store wipe. */
+  /** Flow 13 step 3, in 05 §4 order: stop cooling, forget the tarha, cancel every notification and reminder, then the store wipe. */
   const deleteEverything = async () => {
     runtime?.session.dispatch({ t: 'userCool', on: false });
     await discardRuntime(runtime);
+    await notifier?.cancelAll().catch(() => undefined);
     try {
       await store.wipeEverything();
       setNotice('deleted');
@@ -270,6 +282,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           }}
           onPromptDismiss={() => runtime.session.dispatch({ t: 'promptDismiss' })}
           onAlertLess={(yes) => runtime.session.dispatch({ t: 'alertLessAnswer', yes })}
+          onMute={(untilMono) => runtime.session.dispatch({ t: 'mute', untilMs: untilMono })}
+          history={history}
           onBack={state.screen === 'home' ? back : undefined}
           onContinue={isStoryReady ? () => dispatch({ type: 'continueStory' }) : undefined}
         />

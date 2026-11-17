@@ -170,4 +170,23 @@ export const am_ET: Strings = {
     at_market: 'ገበያ',
     on_road: 'መንገድ ላይ',
   },
+  notify: {
+    monitoring: 'TARA ከአንቺ ጋር ነው',
+    coolBreak: 'TARA: የማቀዝቀዣ እረፍት ጊዜ ነው።',
+    reminder: 'TARA: ሻሽሽን የምትለብሺበት ጊዜ ነው።',
+    batteryLow: 'TARA: እባክሽ ሻሽሽን ቻርጅ አድርጊ።',
+    batteryLock: 'TARA: እባክሽ ሻሽሽን ቻርጅ አድርጊ።',
+    batteryOff: 'TARA: እባክሽ ሻሽሽን ቻርጅ አድርጊ።',
+    phoneBatteryLow: 'TARA: እባክሽ ስልክሽን ቻርጅ አድርጊ።',
+    helpQuestion: 'TARA: እባክሽ መተግበሪያውን ክፈቺ።',
+  },
+  mute: {
+    button: 'ማንቂያዎችን አቁሚ',
+    m30: '30 ደቂቃ',
+    h1: '1 ሰዓት',
+    day: 'የቀረው ቀን',
+    paused: 'ማንቂያዎች ቆመዋል',
+    resume: 'ማንቂያዎችን መልሺ',
+    cancel: 'ሰርዝ',
+  },
 };

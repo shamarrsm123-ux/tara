@@ -56,7 +56,8 @@
           "neverForLocation": true,
           "bluetoothAlwaysPermission": false
         }
-      ]
+      ],
+      "./plugins/withMonitoringService"
     ]
   }
 }

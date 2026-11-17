@@ -170,4 +170,23 @@ export const ar_EG: Strings = {
     at_market: 'في السوق',
     on_road: 'في الطريق',
   },
+  notify: {
+    monitoring: 'تارا معاكي',
+    coolBreak: 'تارا: وقت راحة وبرودة.',
+    reminder: 'تارا: وقت تلبسي طرحتك.',
+    batteryLow: 'تارا: من فضلك اشحني طرحتك.',
+    batteryLock: 'تارا: من فضلك اشحني طرحتك.',
+    batteryOff: 'تارا: من فضلك اشحني طرحتك.',
+    phoneBatteryLow: 'تارا: من فضلك اشحني موبايلك.',
+    helpQuestion: 'تارا: من فضلك افتحي التطبيق.',
+  },
+  mute: {
+    button: 'وقّفي التنبيهات',
+    m30: '٣٠ دقيقة',
+    h1: 'ساعة',
+    day: 'باقي النهارده',
+    paused: 'التنبيهات متوقفة',
+    resume: 'رجّعي التنبيهات',
+    cancel: 'إلغاء',
+  },
 };
