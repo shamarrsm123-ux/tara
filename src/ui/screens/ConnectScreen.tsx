@@ -9,8 +9,7 @@ import { Button } from '../components/Button';
 import { FitChip } from '../components/FitChip';
 import { LiveGraph } from '../components/LiveGraph';
 import { ScreenFrame } from '../components/ScreenFrame';
-import { Card } from '../components/Surface';
-import { TarhaIllustration } from '../icons/Icons';
+import { SunnyFieldScene } from '../art/Scenes';
 import { useUi } from '../theme/UiProvider';
 import { FIT_NUDGE_MS, SPACE } from '../theme/tokens';
 import { playVoice } from '../voice/player';
@@ -27,7 +26,6 @@ interface ConnectScreenProps {
   onBack: () => void;
 }
 
-const SKIN = '#B9875F';
 
 function useFitNudge(isPoorFit: boolean) {
   const { lang } = useUi();
@@ -39,7 +37,7 @@ function useFitNudge(isPoorFit: boolean) {
 }
 
 export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, onNext, onBack }: ConnectScreenProps) {
-  const { t, palette } = useUi();
+  const { t } = useUi();
   const live = phase === 'connected' ? snapshot : null;
   const isPoorFit = live !== null && live.fit !== null && live.fit !== 'good';
   const canContinue = live !== null && live.goodFitMs >= GOOD_FIT_SHOW_MS;
@@ -66,9 +64,7 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
           {isPoorFit && <AppText variant="body">{t('connect.fitMove')}</AppText>}
         </View>
       ) : (
-        <Card tint="peach" style={styles.hero}>
-          <TarhaIllustration scarf={palette.surface} skin={SKIN} dot={palette.accent} isGlowing />
-        </Card>
+        <SunnyFieldScene height={250} tarha="coral" />
       )}
       <AppText variant="body">{t('connect.instruction')}</AppText>
       {phase === 'searching' && (
@@ -86,6 +82,5 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center' },
   live: { gap: SPACE.md },
 });

@@ -1,6 +1,6 @@
 # TARA — Visual Design Reference
 
-**Version:** 2.0
+**Version:** 3.0
 **Document:** 04a — Visual Design (supersedes the *visual* parts of `04` §2–3, §9; all behavior, copy, accessibility and safety rules in `04` still apply)
 **Status:** Team decision 2026-11-16 (v2 the same day: closer match to the fitness-app reference — white screens, coral, ring meter, line chart, tab bar)
 **Depends on:** 04
@@ -63,6 +63,16 @@ Night mirrors these (near-black surfaces, the same hues lightened for contrast);
 - **Cooling card:** white card, blue "Cooling" tag, blue countdown ring, shade + water icons, +10 min (outlined blue), Stop (outlined).
 - **Tab bar (D6):** white, rounded top corners, soft upward shadow; active tab coral, inactive grey.
 - **Learn Your Calm:** the same ring filling in coral as progress, breathing circle inside.
+
+## 6. Illustration & backgrounds (v3, 2026-11-17)
+
+- **All art is vector, drawn in code** (`src/ui/art/`) and bundled — no image downloads, ever (P1).
+- **The TARA woman:** a bust in a light, flowing tarha (cream or coral) with a calm closed-eye face and the coral sensor dot behind her ear, which pulses while sensing (respects reduce-motion). 🟡 Skin tones and tarha styles are drafts to review with women from the communities (`04` §8, Phase 12).
+- **Scenes:** *Sunny field* (sky, sun, palms, rolling fields — Language, Welcome, Connect), *Cool breeze* (blue air and breeze arcs around her head — the cooling card), *Phone & shield* (Safety header and the "Nothing was saved" / "Everything is deleted" screens). The artboard always fits whole; sky and ground extend past its edges to fill wide screens.
+- **Logo mark:** a cream tarha drop with the sensor dot on a coral gradient circle (Home avatar, Language).
+- **Living backdrop:** every screen sits on a pale wash with two soft blobs. Home's mood follows the state — green (Calm), amber (Rising), rose (High stress), **blue while cooling** — always pale enough that text contrast is unchanged; meaning is never carried by the backdrop alone.
+- **Calm ring:** the arc fades from a lighter tint into the zone color, with a soft halo in the zone color behind it and a white disc under the number.
+- Decorative art is hidden from screen readers; the words beside it carry the meaning (`04` §1).
 
 ## 5. What does not change
 

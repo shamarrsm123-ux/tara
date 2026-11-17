@@ -5,7 +5,7 @@ import type { VoiceLineId } from '../../shared/types';
 import { AppText } from '../components/AppText';
 import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
-import { IconShield } from '../icons/Icons';
+import { PhoneShieldScene } from '../art/Scenes';
 import { useUi } from '../theme/UiProvider';
 import { SPACE } from '../theme/tokens';
 
@@ -16,16 +16,12 @@ interface NoticeScreenProps {
   testID?: string;
 }
 
-const BADGE = 120;
-
 export function NoticeScreen({ message, voiceLine, onOk, testID }: NoticeScreenProps) {
-  const { t, palette } = useUi();
+  const { t } = useUi();
   return (
     <ScreenFrame testID={testID} voiceLine={voiceLine} footer={<Button label={t('common.ok')} onPress={onOk} testID="notice-ok" />}>
       <View style={styles.body}>
-        <View style={[styles.badge, { backgroundColor: palette.accentSoft }]}>
-          <IconShield color={palette.accent} size={56} />
-        </View>
+        <PhoneShieldScene height={240} />
         <AppText variant="title" style={styles.center} testID={testID ? `${testID}-message` : undefined}>
           {message}
         </AppText>
@@ -35,7 +31,6 @@ export function NoticeScreen({ message, voiceLine, onOk, testID }: NoticeScreenP
 }
 
 const styles = StyleSheet.create({
-  body: { alignItems: 'center', gap: SPACE.lg, paddingTop: SPACE.xl * 2 },
-  badge: { width: BADGE, height: BADGE, borderRadius: BADGE / 2, alignItems: 'center', justifyContent: 'center' },
+  body: { alignItems: 'center', gap: SPACE.lg, paddingTop: SPACE.lg },
   center: { textAlign: 'center' },
 });

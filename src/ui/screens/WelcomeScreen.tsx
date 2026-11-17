@@ -6,7 +6,8 @@ import { AppText } from '../components/AppText';
 import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { Card, IconSquare } from '../components/Surface';
-import { IconEarSensor, IconLock, IconSnow, IconWoman, TarhaIllustration } from '../icons/Icons';
+import { SunnyFieldScene } from '../art/Scenes';
+import { IconEarSensor, IconLock, IconSnow, IconWoman } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
 import { RADIUS, SPACE, TOUCH_MIN } from '../theme/tokens';
 
@@ -23,7 +24,6 @@ const ROWS: readonly { Icon: ComponentType<{ color: string }>; key: RowKey }[] =
   { Icon: IconLock, key: 'welcome.rowPrivacy' },
 ];
 
-const SKIN = '#B9875F';
 const TINTS = ['peach', 'apricot', 'lemon'] as const;
 
 export function WelcomeScreen({ onTry, onBack }: WelcomeScreenProps) {
@@ -36,14 +36,14 @@ export function WelcomeScreen({ onTry, onBack }: WelcomeScreenProps) {
       onBack={onBack}
       footer={<Button label={t('welcome.try')} hasArrow onPress={onTry} testID="welcome-try" />}
     >
-      <Card tint="peach" style={styles.hero}>
+      <View>
+        <SunnyFieldScene height={270} />
         <View style={[styles.brandTag, { backgroundColor: palette.surface }]}>
           <AppText variant="caption" isBold color="accent">
             {t('brand.name')}
           </AppText>
         </View>
-        <TarhaIllustration scarf={palette.surface} skin={SKIN} dot={palette.accent} size={200} isGlowing />
-      </Card>
+      </View>
       <AppText variant="body" color="textMuted">
         {t('welcome.intro')}
       </AppText>
@@ -79,8 +79,7 @@ export function WelcomeScreen({ onTry, onBack }: WelcomeScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', paddingTop: SPACE.md },
-  brandTag: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: RADIUS.tag },
+  brandTag: { position: 'absolute', top: SPACE.md, start: SPACE.md, paddingHorizontal: 12, paddingVertical: 4, borderRadius: RADIUS.tag },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   rowText: { flex: 1 },
   expander: { minHeight: TOUCH_MIN, justifyContent: 'center' },

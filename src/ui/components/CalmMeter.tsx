@@ -4,12 +4,12 @@
 // from signal/. `ProgressRing` is the same ring on its own, used by Learn Your Calm.
 import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, RadialGradient, Stop } from 'react-native-svg';
 import type { Zone } from '../../shared/types';
 import { formatNumber } from '../i18n/format';
 import { ZoneFace } from '../icons/ZoneFace';
 import { useUi } from '../theme/UiProvider';
-import { METER_EASE_MS, RING_SIZE, RING_STROKE, TYPE_SIZE } from '../theme/tokens';
+import { METER_EASE_MS, RING_GRADIENT, RING_SIZE, RING_STROKE, TYPE_SIZE } from '../theme/tokens';
 import { useReduceMotion } from '../theme/useReduceMotion';
 import { AppText } from './AppText';
 
@@ -32,11 +32,13 @@ interface ProgressRingProps {
   fraction: number;
   color: string;
   trackColor: string;
+  /** Lighter start color: the arc fades from this into `color` (04a v3 §6). */
+  gradientFrom?: string;
   children?: ReactNode;
 }
 
 /** The ring on its own, filling clockwise from the top (counter-clockwise in RTL). */
-export function ProgressRing({ fraction, color, trackColor, children }: ProgressRingProps) {
+export function ProgressRing({ fraction, color, trackColor, gradientFrom, children }: ProgressRingProps) {
   const { isRtl } = useUi();
   const isReducedMotion = useReduceMotion();
   const [fill] = useState(() => new Animated.Value(fraction));
@@ -52,16 +54,29 @@ export function ProgressRing({ fraction, color, trackColor, children }: Progress
   }, [fill, fraction, isReducedMotion]);
 
   const c = RING_SIZE / 2;
+  const id = `ring-${color.replace('#', '')}`;
   return (
     <View style={styles.box}>
       <Svg width={RING_SIZE} height={RING_SIZE} style={[StyleSheet.absoluteFill, isRtl ? styles.mirrored : null]}>
+        <Defs>
+          <LinearGradient id={`${id}-arc`} x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor={gradientFrom ?? color} />
+            <Stop offset="1" stopColor={color} />
+          </LinearGradient>
+          <RadialGradient id={`${id}-halo`} cx="0.5" cy="0.5" r="0.5">
+            <Stop offset="0.55" stopColor={color} stopOpacity={0.14} />
+            <Stop offset="1" stopColor={color} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        {fraction > 0 && <Circle cx={c} cy={c} r={c} fill={`url(#${id}-halo)`} />}
         <Circle cx={c} cy={c} r={R} stroke={trackColor} strokeWidth={RING_STROKE} fill="none" />
+        <Circle cx={c} cy={c} r={INNER_R - 4} fill="#FFFFFF" opacity={0.9} />
         <Circle cx={c} cy={c} r={INNER_R} stroke={color} strokeOpacity={0.55} strokeWidth={1.5} strokeDasharray={DASH} fill="none" />
         <AnimatedCircle
           cx={c}
           cy={c}
           r={R}
-          stroke={color}
+          stroke={`url(#${id}-arc)`}
           strokeWidth={RING_STROKE}
           strokeLinecap="round"
           strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
@@ -93,7 +108,12 @@ export function CalmMeter({ calm, zone, status, testID }: CalmMeterProps) {
 
   return (
     <View accessible accessibilityLabel={shown !== null ? t('meter.a11y', { value: shown, zone: word }) : word} testID={testID}>
-      <ProgressRing fraction={fraction} color={liveZone !== null ? palette[liveZone] : palette.neutral} trackColor={palette.track}>
+      <ProgressRing
+        fraction={fraction}
+        color={liveZone !== null ? palette[liveZone] : palette.neutral}
+        gradientFrom={liveZone !== null ? RING_GRADIENT[liveZone] : undefined}
+        trackColor={palette.track}
+      >
         {liveZone !== null && <ZoneFace zone={liveZone} color={palette[liveZone]} size={FACE_SIZE} />}
         <AppText
           variant="calmNumber"

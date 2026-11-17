@@ -8,6 +8,8 @@ import { AppText } from '../components/AppText';
 import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { VoiceButton } from '../components/VoiceButton';
+import { LogoMark } from '../art/LogoMark';
+import { SunnyFieldScene } from '../art/Scenes';
 import { UiProvider, useUi } from '../theme/UiProvider';
 import { PRIMARY_BUTTON_HEIGHT, RADIUS, SPACE } from '../theme/tokens';
 import { playVoice } from '../voice/player';
@@ -51,6 +53,12 @@ export function LanguageScreen({ selected, onSelect, onContinue }: LanguageScree
       testID="screen-language"
       footer={selected !== null ? <Button label={t('language.continue')} hasArrow onPress={onContinue} testID="language-continue" /> : undefined}
     >
+      <View>
+        <SunnyFieldScene height={220} />
+        <View style={styles.logo}>
+          <LogoMark size={52} />
+        </View>
+      </View>
       <View style={styles.cards}>
         {LANGS.map((lang) => (
           <LanguageCard key={lang} lang={lang} isSelected={selected === lang} onPress={() => choose(lang)} />
@@ -61,7 +69,8 @@ export function LanguageScreen({ selected, onSelect, onContinue }: LanguageScree
 }
 
 const styles = StyleSheet.create({
-  cards: { gap: SPACE.md, paddingTop: SPACE.xl },
+  cards: { gap: SPACE.md },
+  logo: { position: 'absolute', top: SPACE.md, start: SPACE.md, borderRadius: 32, borderWidth: 3, borderColor: '#FFFFFF' },
   card: { flexDirection: 'row', alignItems: 'center', borderRadius: RADIUS.card, paddingHorizontal: SPACE.lg, gap: SPACE.md },
   cardPress: { flex: 1, minHeight: PRIMARY_BUTTON_HEIGHT + SPACE.md, justifyContent: 'center' },
 });

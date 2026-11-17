@@ -13,7 +13,9 @@ import { CalmMeter, type MeterStatus } from '../components/CalmMeter';
 import { FitChip } from '../components/FitChip';
 import { LiveGraph } from '../components/LiveGraph';
 import { BackButton, ScreenFrame } from '../components/ScreenFrame';
-import { SectionTitle, type CardTint } from '../components/Surface';
+import { LogoMark } from '../art/LogoMark';
+import type { BackdropMood } from '../theme/tokens';
+import { Card, SectionTitle, type CardTint } from '../components/Surface';
 import { IconBattery, IconLink, IconSnow } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
 import { RADIUS, SPACE, TOUCH_MIN } from '../theme/tokens';
@@ -29,7 +31,7 @@ interface HomeScreenProps {
 }
 
 const MS_PER_S = 1000;
-const TILE_ICON = 30;
+const TILE_ICON = 26;
 
 export function meterStatusFor(s: MonitorSnapshot): MeterStatus {
   if (s.connection !== 'connected') return 'notConnected';
@@ -41,6 +43,13 @@ export function isCoolingActive(s: MonitorSnapshot): boolean {
   return s.engine.cooling === 'on' || s.engine.cooling === 'starting';
 }
 
+/** The background follows what is happening: blue while cooling, else the live zone (04a v3 §6). */
+export function moodFor(s: MonitorSnapshot): BackdropMood {
+  if (isCoolingActive(s)) return 'cool';
+  if (meterStatusFor(s) !== 'live' || s.zone === 'unknown') return 'warm';
+  return s.zone;
+}
+
 function Greeting({ snapshot, onBack }: { snapshot: MonitorSnapshot; onBack?: () => void }) {
   const { t, lang, palette } = useUi();
   const isConnected = snapshot.connection === 'connected';
@@ -49,11 +58,7 @@ function Greeting({ snapshot, onBack }: { snapshot: MonitorSnapshot; onBack?: ()
       {onBack !== undefined ? (
         <BackButton onPress={onBack} />
       ) : (
-        <View style={[styles.avatar, { backgroundColor: palette.accentSoft }]}>
-          <AppText variant="body" isBold color="accent">
-            {t('brand.name').slice(0, 1)}
-          </AppText>
-        </View>
+        <LogoMark size={56} />
       )}
       <View style={styles.greeting}>
         <AppText variant="caption" color="textMuted">
@@ -89,7 +94,7 @@ function Tile({ tint, icon, value, label, testID }: TileProps) {
   const fill = tint === 'peach' ? palette.tintPeach : tint === 'apricot' ? palette.tintApricot : palette.tintLemon;
   return (
     <View style={[styles.tile, { backgroundColor: fill }]} accessible accessibilityLabel={`${label}: ${value}`} testID={testID}>
-      {icon}
+      <View style={[styles.tileIcon, { backgroundColor: palette.surface }]}>{icon}</View>
       <View>
         <AppText variant="body" isBold numberOfLines={1}>
           {value}
@@ -143,7 +148,7 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinu
   const totalS = e.coolingEndsAtMono === null || e.coolingStartedAtMono === null ? null : (e.coolingEndsAtMono - e.coolingStartedAtMono) / MS_PER_S;
 
   return (
-    <ScreenFrame testID="screen-home" demo={demo} header={<Greeting snapshot={snapshot} onBack={isCooling ? undefined : onBack} />}>
+    <ScreenFrame testID="screen-home" demo={demo} backdrop={moodFor(snapshot)} header={<Greeting snapshot={snapshot} onBack={isCooling ? undefined : onBack} />}>
       <View style={styles.meter}>
         {snapshot.fit !== null && snapshot.fit !== 'good' && <FitChip fit={snapshot.fit} testID="home-fit" />}
         <CalmMeter calm={snapshot.calm} zone={snapshot.zone} status={meterStatusFor(snapshot)} testID="home-meter" />
@@ -171,7 +176,9 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinu
       )}
       {onContinue !== undefined && <Button label={t('home.continue')} hasArrow onPress={onContinue} testID="home-continue" />}
       <RightNow snapshot={snapshot} />
-      <LiveGraph points={snapshot.points} coolingBands={snapshot.coolingBands} nowMs={snapshot.nowMs} windowMs={GRAPH_WINDOW_MS} />
+      <Card>
+        <LiveGraph points={snapshot.points} coolingBands={snapshot.coolingBands} nowMs={snapshot.nowMs} windowMs={GRAPH_WINDOW_MS} />
+      </Card>
     </ScreenFrame>
   );
 }
@@ -185,5 +192,6 @@ const styles = StyleSheet.create({
   centerText: { textAlign: 'center' },
   section: { gap: SPACE.md },
   tiles: { flexDirection: 'row', gap: SPACE.sm },
+  tileIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   tile: { flex: 1, borderRadius: RADIUS.tile, padding: SPACE.md, gap: SPACE.md, minHeight: 120, justifyContent: 'space-between' },
 });

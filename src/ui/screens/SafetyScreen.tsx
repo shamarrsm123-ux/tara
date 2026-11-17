@@ -10,7 +10,8 @@ import { AppText } from '../components/AppText';
 import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { Card, IconSquare } from '../components/Surface';
-import { IconLock, IconNoInternet, IconShield } from '../icons/Icons';
+import { PhoneShieldScene } from '../art/Scenes';
+import { IconLock, IconNoInternet } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
 import { SPACE, TOUCH_MIN } from '../theme/tokens';
 import { DeleteEverything, PlaceCard, ShorterRetention, useRetentionLabel } from './SafetySections';
@@ -47,10 +48,8 @@ export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
       demo={demo}
       footer={isStory ? <Button label={t('safety.done')} hasArrow onPress={onDone} testID="privacy-done" /> : undefined}
     >
-      <Card tint="peach">
-        <IconSquare>
-          <IconShield color={palette.accent} />
-        </IconSquare>
+      <Card tint="peach" style={styles.hero}>
+        <PhoneShieldScene height={180} style={styles.heroArt} />
         <AppText variant="question" isBold>
           {t('safety.header')}
         </AppText>
@@ -105,6 +104,8 @@ export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
 }
 
 const styles = StyleSheet.create({
+  hero: { paddingTop: SPACE.sm },
+  heroArt: { marginHorizontal: -SPACE.sm },
   list: { gap: SPACE.sm, paddingVertical: SPACE.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, minHeight: TOUCH_MIN },
   divider: { height: 1, marginStart: ICON_SQUARE + SPACE.md },

@@ -13,6 +13,7 @@ import { Button } from './Button';
 import { DecisionCard } from './DecisionCard';
 import { Card, Tag } from './Surface';
 import { VoiceButton } from './VoiceButton';
+import { CoolBreezeScene } from '../art/Scenes';
 
 const RING = 96;
 const RING_STROKE = 9;
@@ -101,6 +102,7 @@ export function CoolingCard({ remainingS, totalS, reason, isStarting, canExtend,
   return (
     <Card testID="cooling-card">
       <Tag label={t('status.coolingLabel')} color={palette.cool} testID="cooling-tag" />
+      <CoolBreezeScene height={150} />
       <View style={styles.body}>
         <View style={styles.header}>
           <AppText variant="question" style={styles.flex}>

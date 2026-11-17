@@ -168,3 +168,50 @@ export const BREATHE_OUT_MS = 6000;
 export const CALIBRATION_DONE_PAUSE_MS = 2500;
 /** Voice nudge after the fit has not been Good for this long (03 Flow 1 step 5). */
 export const FIT_NUDGE_MS = 5000;
+
+/** Illustration colors (04 §8, 04a v3 §6). Fixed artwork colors — never used for text, so not contrast-bound.
+ *  🟡 Skin tones, tarha colors and scenes are drafts to review with community members (13 Phase 12). */
+export const ART = {
+  skinWarm: '#B07A52',
+  skinDeep: '#7A4E31',
+  blush: '#E07A5F',
+  tarhaCream: '#FFF8F1',
+  tarhaShade: '#F1DCCB',
+  tarhaCoral: '#F7A58A',
+  tarhaCoralShade: '#E9876A',
+  dress: '#C9705A',
+  dressShade: '#AF5A46',
+  skyTop: '#FFD9C4',
+  skyBottom: '#FFF5EC',
+  sun: '#FFB27A',
+  sunGlow: '#FFD3A8',
+  hillFar: '#F4C7A6',
+  fieldMid: '#C9DDA9',
+  fieldNear: '#A9CB8E',
+  palm: '#D69A74',
+  cloud: '#FFFFFF',
+  coolTop: '#DCEBFF',
+  coolBottom: '#F4F9FF',
+  breeze: '#6FA8F0',
+  breezeSoft: '#B9D6FA',
+  phone: '#2B2B30',
+  screen: '#FFF3EC',
+  leaf: '#9CC48A',
+} as const;
+
+/** Soft blob colors for screen backdrops, per mood (04a v3 §6). */
+export const BACKDROP = {
+  warm: ['#FFE1D3', '#FFEFD9'],
+  calm: ['#DDF1E2', '#EAF6E3'],
+  rising: ['#FCEBC8', '#FFF1D6'],
+  high: ['#FBD9D4', '#FFE6DC'],
+  cool: ['#DCEBFF', '#E6F3FF'],
+} as const;
+export type BackdropMood = keyof typeof BACKDROP;
+
+/** Gradient ends for the Calm ring, per zone (lighter → zone color). */
+export const RING_GRADIENT = {
+  calm: '#4CC27A',
+  rising: '#E8B23A',
+  high: '#F0645A',
+} as const;

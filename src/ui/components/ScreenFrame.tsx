@@ -5,9 +5,10 @@
 import { useEffect, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import type { VoiceLineId } from '../../shared/types';
+import { Backdrop } from '../art/Backdrop';
 import { IconBack } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
-import { SPACE, TOUCH_MIN } from '../theme/tokens';
+import { SPACE, TOUCH_MIN, type BackdropMood } from '../theme/tokens';
 import { AppText } from './AppText';
 import { playVoice } from '../voice/player';
 import { DemoRibbon } from './DemoRibbon';
@@ -25,6 +26,8 @@ interface ScreenFrameProps {
   title?: string;
   /** Replaces the default header row entirely. */
   header?: ReactNode;
+  /** Soft illustrated background mood (04a v3 §6); null = plain. */
+  backdrop?: BackdropMood | null;
   testID?: string;
 }
 
@@ -45,7 +48,7 @@ export function BackButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true, onBack, demo = null, title, header, testID }: ScreenFrameProps) {
+export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true, onBack, demo = null, title, header, backdrop = 'warm', testID }: ScreenFrameProps) {
   const { palette, lang } = useUi();
 
   useEffect(() => {
@@ -54,6 +57,7 @@ export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true
 
   return (
     <View style={[styles.root, { backgroundColor: palette.bg }]} testID={testID}>
+      {backdrop !== null && <Backdrop mood={backdrop} />}
       {demo !== null && <DemoRibbon isSpedUp={demo.isSpedUp} />}
       {header ?? (
         <View style={styles.header}>

@@ -1,9 +1,6 @@
 // Simple line icons and the Welcome illustration (04 §8). 🟡 Placeholders drawn in code: the final
 // illustrations of a woman in a light tarha must be made and reviewed with community members (13 Phase 12).
-import { useEffect, useState } from 'react';
-import { Animated, Easing } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { useReduceMotion } from '../theme/useReduceMotion';
 
 interface IconProps {
   color: string;
@@ -12,7 +9,6 @@ interface IconProps {
 
 const STROKE = 2.4;
 const DEFAULT_SIZE = 32;
-const PULSE_MS = 900;
 
 export function IconWoman({ color, size = DEFAULT_SIZE }: IconProps) {
   return (
@@ -81,47 +77,6 @@ export function IconBack({ color, size = DEFAULT_SIZE, isFlipped }: IconProps & 
   return (
     <Svg width={size} height={size} viewBox="0 0 32 32" fill="none" style={isFlipped ? { transform: [{ scaleX: -1 }] } : undefined}>
       <Path d="M20 6 L10 16 L20 26" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-/** A woman in a light tarha with the sensor dot behind her ear; the dot glows when `isGlowing`. */
-export function TarhaIllustration({
-  scarf,
-  skin,
-  dot,
-  size = 180,
-  isGlowing = false,
-}: {
-  scarf: string;
-  skin: string;
-  dot: string;
-  size?: number;
-  isGlowing?: boolean;
-}) {
-  const isReducedMotion = useReduceMotion();
-  const [glow] = useState(() => new Animated.Value(1));
-  useEffect(() => {
-    if (!isGlowing || isReducedMotion) return undefined;
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glow, { toValue: 0.35, duration: PULSE_MS, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
-        Animated.timing(glow, { toValue: 1, duration: PULSE_MS, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [glow, isGlowing, isReducedMotion]);
-
-  return (
-    <Svg width={size} height={size} viewBox="0 0 120 120">
-      <Path d="M28 112 Q60 84 92 112 Z" fill={scarf} />
-      <Path d="M30 62 Q28 18 60 16 Q92 18 90 62 Q92 92 60 98 Q28 92 30 62 Z" fill={scarf} />
-      <Circle cx={60} cy={58} r={22} fill={skin} />
-      <Circle cx={83} cy={64} r={8} fill={dot} opacity={0.25} />
-      <AnimatedCircle cx={83} cy={64} r={4.5} fill={dot} opacity={glow} />
     </Svg>
   );
 }
