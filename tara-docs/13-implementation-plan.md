@@ -93,6 +93,8 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 **Acceptance:** `12` §6 flow 4; shortening retention to 1 day cancels the reminder and shows "I need more days".
 
+🟡 *Phase 9 notes (2026-11-17): the pattern run (`patterns/plan.ts`) happens when Daily mode opens, every hour, and right after retention changes, using events/minutes converted to local time with the phone's own offset. Flow 8's reminder card appears on Home between the reminder time and the pattern time (rather than only when the notification is tapped); "Okay" and "Not today" both hide it for today. New patterns are offered only if she said Yes on Screen 4.*
+
 ## Phase 10 — Family & Help Request
 - Contacts (max 3, manual or picker), test message, place labels, help flow with preview and SMS composer, engine-initiated question with 60-min cooldown.
 

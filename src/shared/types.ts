@@ -132,6 +132,8 @@ export const VOICE_LINE_IDS = [
   'ageQuestion',
   'privacyHeader',
   'deletedAll',
+  'patternOffer',
+  'reminderNow',
 ] as const;
 export type VoiceLineId = (typeof VOICE_LINE_IDS)[number];
 

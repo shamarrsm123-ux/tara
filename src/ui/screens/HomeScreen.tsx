@@ -32,6 +32,8 @@ interface HomeScreenProps {
   onContinue?: () => void;
   /** Mute alerts until this monotonic time; null turns alerts back on (03 Flow 7 step 5). */
   onMute?: (untilMono: number | null) => void;
+  /** Cards shown above the meter (smart-reminder offer, reminder, notices). */
+  banner?: ReactNode;
 }
 
 const MS_PER_S = 1000;
@@ -155,7 +157,7 @@ function RightNow({ snapshot }: { snapshot: MonitorSnapshot }) {
   );
 }
 
-export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinue, onMute }: HomeScreenProps) {
+export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinue, onMute, banner }: HomeScreenProps) {
   const [isChoosingMute, setIsChoosingMute] = useState(false);
   const { t } = useUi();
   const e = snapshot.engine;
@@ -175,6 +177,7 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinu
         />
       )}
       {snapshot.engine.isMuted && onMute !== undefined && <MutedNotice onResume={() => onMute(null)} />}
+      {banner}
       <View style={styles.meter}>
         {snapshot.fit !== null && snapshot.fit !== 'good' && <FitChip fit={snapshot.fit} testID="home-fit" />}
         <CalmMeter calm={snapshot.calm} zone={snapshot.zone} status={meterStatusFor(snapshot)} testID="home-meter" />

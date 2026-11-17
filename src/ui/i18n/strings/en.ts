@@ -188,6 +188,14 @@ export const en = {
     resume: 'Turn alerts back on',
     cancel: 'Cancel',
   },
+  pattern: {
+    offer: 'You often feel stressed around {{time}}. Do you want me to remind you at {{reminder}} to wear your tarha?',
+    faded: 'Your {{time}} stress is gone lately, so I stopped the reminder.',
+    needMore: 'I need more days to learn your pattern.',
+    reminderNow: 'You often feel stressed around {{time}}. Put on your tarha now so it can help early.',
+    okay: 'Okay',
+    notToday: 'Not today',
+  },
 };
 
 export type Strings = typeof en;

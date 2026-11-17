@@ -24,6 +24,8 @@ export interface MainActions {
   /** Try story only: Home → Screen 4 after the cooling scene. */
   onContinue?: () => void;
   onMute?: (untilMono: number | null) => void;
+  /** Cards above the Home meter (smart reminders). */
+  homeBanner?: ReactNode;
 }
 
 interface MainShellProps extends MainActions {
@@ -47,7 +49,7 @@ function Overlay({ children, demo }: { children: ReactNode; demo: { isSpedUp: bo
   );
 }
 
-export function MainShell({ snapshot, demo, saved, history = null, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack, onContinue, onMute }: MainShellProps) {
+export function MainShell({ snapshot, demo, saved, history = null, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack, onContinue, onMute, homeBanner }: MainShellProps) {
   const [tab, setTab] = useState<MainTab>('home');
   const e = snapshot.engine;
   const startCooling = () => {
@@ -62,7 +64,7 @@ export function MainShell({ snapshot, demo, saved, history = null, onCool, onExt
   return (
     <View style={styles.fill}>
       <View style={styles.fill}>
-        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} onContinue={onContinue} onMute={onMute} />}
+        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} onContinue={onContinue} onMute={onMute} banner={homeBanner} />}
         {tab === 'myDays' && <MyDaysScreen snapshot={snapshot} demo={demo} history={history} />}
         {tab === 'safety' && <SafetyScreen demo={demo} saved={saved} />}
       </View>

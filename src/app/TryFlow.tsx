@@ -30,6 +30,9 @@ import { systemClock } from '../shared/clock';
 import { createDemoRuntime, createTarhaRuntime, discardRuntime, type Runtime } from './runtime';
 import { useConnect } from './useConnect';
 import { useDailyServices } from './useDailyServices';
+import { timeOfDayMs, useReminders } from './useReminders';
+import { reminderMinuteFor } from '../patterns/plan';
+import { PatternCards } from '../ui/components/PatternCards';
 import { createNotifier } from '../notify/createNotifier';
 import { canGoBack, reduceTry, type TryState } from './tryNavigation';
 import { usePersistence } from './usePersistence';
@@ -77,6 +80,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   usePersistence(store, runtime?.session ?? null, isSetUp && isRealTarha);
   const isDaily = isSetUp && state.screen === 'daily';
   const history = useDailyServices(store, notifier, runtime?.session ?? null, isDaily);
+  const reminders = useReminders(store, notifier, isDaily, snapshot?.nowMs ?? 0);
   useEffect(() => {
     notifierRef.current = isDaily ? notifier : null;
   }, [notifier, isDaily]);
@@ -203,7 +207,11 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     isSetUp && settings !== null
       ? {
           settings,
-          onSettings: (patch) => void store.updateSettings(patch).then(() => store.getSettings().then(setSettings), () => undefined),
+          onSettings: (patch) =>
+            void store.updateSettings(patch).then(async () => {
+              setSettings(await store.getSettings());
+              if (patch.retentionDays !== undefined) reminders.refresh(); // 05 §3: patterns recomputed after retention changes
+            }, () => undefined),
           onDeleteEverything: () => void deleteEverything(),
         }
       : null;
@@ -284,6 +292,22 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           onAlertLess={(yes) => runtime.session.dispatch({ t: 'alertLessAnswer', yes })}
           onMute={(untilMono) => runtime.session.dispatch({ t: 'mute', untilMs: untilMono })}
           history={history}
+          homeBanner={
+            isDaily ? (
+              <PatternCards
+                offerSlot={reminders.offerSlot}
+                dueSlot={reminders.dueSlot}
+                fadedSlot={reminders.fadedSlot}
+                needMoreDays={reminders.needMoreDays}
+                timeOf={(m) => timeOfDayMs(m, snapshot.nowMs)}
+                reminderOf={reminderMinuteFor}
+                onAccept={reminders.accept}
+                onDecline={reminders.decline}
+                onDismissDue={reminders.dismissDue}
+                onDismissFaded={reminders.dismissFaded}
+              />
+            ) : undefined
+          }
           onBack={state.screen === 'home' ? back : undefined}
           onContinue={isStoryReady ? () => dispatch({ type: 'continueStory' }) : undefined}
         />
