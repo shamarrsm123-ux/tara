@@ -44,6 +44,8 @@ export interface TarhaStatus {
 export type AlertSensitivity = 'fewer' | 'normal' | 'more';
 export type CoolingMode = 'ask' | 'auto';
 export type PlaceLabel = 'in_field' | 'at_home' | 'at_market' | 'on_road';
+/** General place labels she may offer her family (03 Flow 6 step 4) — fixed words, never GPS. */
+export const PLACE_LABELS: readonly PlaceLabel[] = ['in_field', 'at_home', 'at_market', 'on_road'];
 
 export interface Settings {
   retentionDays: 1 | 3 | 7;
@@ -55,6 +57,8 @@ export interface Settings {
   enabledPlaceLabels: readonly PlaceLabel[];
   appLock: boolean;
   theme: 'sun' | 'night' | 'auto';
+  /** 🟡 Screen 4 answer: may TARA offer reminders when it finds a pattern? (03 Flow 4 step 2; column added to 05 §2.2) */
+  patternOffers: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -67,6 +71,7 @@ export const DEFAULT_SETTINGS: Settings = {
   enabledPlaceLabels: [],
   appLock: false,
   theme: 'sun',
+  patternOffers: true,
 };
 
 /** Event types (05 §2.5). */
@@ -119,6 +124,14 @@ export const VOICE_LINE_IDS = [
   'batteryOff',
   'phoneBatteryLow',
   'deleteHold',
+  'patternExample',
+  'brainCalm',
+  'saveQuestion',
+  'nothingSaved',
+  'nameQuestion',
+  'ageQuestion',
+  'privacyHeader',
+  'deletedAll',
 ] as const;
 export type VoiceLineId = (typeof VOICE_LINE_IDS)[number];
 

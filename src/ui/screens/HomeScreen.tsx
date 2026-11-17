@@ -8,6 +8,7 @@ import { GOOD_FIT_SHOW_MS, GRAPH_WINDOW_MS, type MonitorSnapshot } from '../../e
 import { formatDate, formatNumber } from '../i18n/format';
 import { CoolingCard } from '../components/ActionCards';
 import { AppText } from '../components/AppText';
+import { Button } from '../components/Button';
 import { CalmMeter, type MeterStatus } from '../components/CalmMeter';
 import { FitChip } from '../components/FitChip';
 import { LiveGraph } from '../components/LiveGraph';
@@ -22,7 +23,9 @@ interface HomeScreenProps {
   demo: { isSpedUp: boolean } | null;
   onCool: (on: boolean) => void;
   onExtend: () => void;
-  onBack: () => void;
+  onBack?: () => void;
+  /** Try story: shown after the cooling scene to go on to Screen 4. */
+  onContinue?: () => void;
 }
 
 const MS_PER_S = 1000;
@@ -132,7 +135,7 @@ function RightNow({ snapshot }: { snapshot: MonitorSnapshot }) {
   );
 }
 
-export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack }: HomeScreenProps) {
+export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinue }: HomeScreenProps) {
   const { t } = useUi();
   const e = snapshot.engine;
   const isCooling = isCoolingActive(snapshot);
@@ -166,6 +169,7 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack }: HomeScr
           {t('cool.failed')}
         </AppText>
       )}
+      {onContinue !== undefined && <Button label={t('home.continue')} hasArrow onPress={onContinue} testID="home-continue" />}
       <RightNow snapshot={snapshot} />
       <LiveGraph points={snapshot.points} coolingBands={snapshot.coolingBands} nowMs={snapshot.nowMs} windowMs={GRAPH_WINDOW_MS} />
     </ScreenFrame>

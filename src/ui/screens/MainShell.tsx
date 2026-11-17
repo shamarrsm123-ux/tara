@@ -11,7 +11,7 @@ import { TabBar, type MainTab } from '../components/TabBar';
 import { SPACE } from '../theme/tokens';
 import { HomeScreen, isCoolingActive } from './HomeScreen';
 import { MyDaysScreen } from './MyDaysScreen';
-import { SafetyScreen } from './SafetyScreen';
+import { SafetyScreen, type SavedSafety } from './SafetyScreen';
 
 export interface MainActions {
   onCool: (on: boolean) => void;
@@ -19,12 +19,17 @@ export interface MainActions {
   onPromptAnswer: (yes: boolean) => void;
   onPromptDismiss: () => void;
   onAlertLess: (yes: boolean) => void;
-  onBack: () => void;
+  /** Try story only; Daily mode has no way back. */
+  onBack?: () => void;
+  /** Try story only: Home → Screen 4 after the cooling scene. */
+  onContinue?: () => void;
 }
 
 interface MainShellProps extends MainActions {
   snapshot: MonitorSnapshot;
   demo: { isSpedUp: boolean } | null;
+  /** Store-backed settings and Delete Everything once she has saved; null in Try mode. */
+  saved: SavedSafety | null;
 }
 
 const OVERLAY_SCRIM = 'rgba(28, 28, 30, 0.5)';
@@ -39,7 +44,7 @@ function Overlay({ children, demo }: { children: ReactNode; demo: { isSpedUp: bo
   );
 }
 
-export function MainShell({ snapshot, demo, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack }: MainShellProps) {
+export function MainShell({ snapshot, demo, saved, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack, onContinue }: MainShellProps) {
   const [tab, setTab] = useState<MainTab>('home');
   const e = snapshot.engine;
   const startCooling = () => {
@@ -54,9 +59,9 @@ export function MainShell({ snapshot, demo, onCool, onExtend, onPromptAnswer, on
   return (
     <View style={styles.fill}>
       <View style={styles.fill}>
-        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} />}
+        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} onContinue={onContinue} />}
         {tab === 'myDays' && <MyDaysScreen snapshot={snapshot} demo={demo} />}
-        {tab === 'safety' && <SafetyScreen demo={demo} />}
+        {tab === 'safety' && <SafetyScreen demo={demo} saved={saved} />}
       </View>
       <TabBar active={tab} onSelect={setTab} isCooling={isCoolingActive(snapshot)} isCoolBlocked={e.coolBlockReason !== null} onCool={startCooling} />
       {e.isPromptShowing ? (

@@ -1,9 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { translatorFor } from '../../ui/i18n';
+import { createMemoryStore } from '../../store/memoryStore';
 import { TryFlow } from '../TryFlow';
+import { INITIAL_TRY } from '../tryNavigation';
 
 // 13 Phase 4 acceptance: install → moving Calm meter in under 2 minutes, in Arabic, without reading English.
 const t = translatorFor('ar_EG');
+// Driving minutes of fake time through the full UI takes a few real seconds under a loaded test run.
+jest.setTimeout(30_000);
 const LATIN = /[A-Za-z]/;
 
 type Node = { children?: (Node | string)[] | null } | string | null;
@@ -38,7 +42,7 @@ describe('Try flow in Arabic (13 Phase 4)', () => {
   afterEach(() => jest.useRealTimers());
 
   test('install → moving Calm meter in < 2 min, no English on screen after choosing Arabic', async () => {
-    await render(<TryFlow />);
+    await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
     expect(screen.queryByTestId('language-continue')).toBeNull();
 
     await tap('lang-ar_EG');
@@ -78,7 +82,7 @@ describe('Try flow in Arabic (13 Phase 4)', () => {
   });
 
   test('Skip uses the default baseline and goes straight to Home', async () => {
-    await render(<TryFlow />);
+    await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
     await tap('lang-ar_EG');
     await tap('language-continue');
     await tap('welcome-try');
@@ -91,7 +95,7 @@ describe('Try flow in Arabic (13 Phase 4)', () => {
   });
 
   test('Next stays disabled until 5 s of Good fit; back returns to the previous screen', async () => {
-    await render(<TryFlow />);
+    await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
     await tap('lang-en');
     await tap('language-continue');
     await tap('welcome-try');

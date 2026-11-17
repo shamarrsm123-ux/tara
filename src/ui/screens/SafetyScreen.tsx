@@ -1,29 +1,52 @@
-// Safety tab (03 Flow 6, 04 §10 Screen 6), Try-mode version: shield header with "processed on your phone only",
-// then status rows — retention (7 days) and "No internet used ✓" (tap for the airplane-mode explanation).
-// 🟡 Shortening retention, Delete Everything, Family, Place and Lock arrive with storage in Phase 6.
+// Screen 6 — Privacy & Safety (03 Flow 6, 04 §10), also the Safety tab. Header "processed on your phone only";
+// rows: delete-after (shorter only), "No internet used ✓" (tap for why), then Delete Everything; then the
+// optional General place card. Before saving (Try mode) only the true statements are shown — there is nothing
+// to shorten or delete yet. 🟡 Family (Flow 10) and Lock (Phase 11) cards join when those features exist, so
+// no Yes button here ever promises something the build can't do (04 §12).
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { DEFAULT_SETTINGS } from '../../shared/types';
-import { formatNumber } from '../i18n/format';
+import { DEFAULT_SETTINGS, type Settings } from '../../shared/types';
 import { AppText } from '../components/AppText';
+import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { Card, IconSquare } from '../components/Surface';
 import { IconLock, IconNoInternet, IconShield } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
 import { SPACE, TOUCH_MIN } from '../theme/tokens';
+import { DeleteEverything, PlaceCard, ShorterRetention, useRetentionLabel } from './SafetySections';
+
+export interface SavedSafety {
+  settings: Settings;
+  onSettings: (patch: Partial<Settings>) => void;
+  onDeleteEverything: () => void;
+}
 
 interface SafetyScreenProps {
   demo: { isSpedUp: boolean } | null;
+  /** Null in Try mode (nothing saved yet). */
+  saved: SavedSafety | null;
+  /** Screen 6 of the story shows Done → Daily mode; the tab doesn't. */
+  onDone?: () => void;
 }
 
 const CHECK = '✓';
 const ICON_SQUARE = 48;
 
-export function SafetyScreen({ demo }: SafetyScreenProps) {
-  const { t, palette, lang } = useUi();
+export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
+  const { t, palette } = useUi();
+  const retentionLabel = useRetentionLabel();
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const retentionDays = saved?.settings.retentionDays ?? DEFAULT_SETTINGS.retentionDays;
+  const isStory = onDone !== undefined;
   return (
-    <ScreenFrame testID="screen-safety" title={t('tabs.safety')} demo={demo}>
+    <ScreenFrame
+      testID={isStory ? 'screen-privacy' : 'screen-safety'}
+      title={t('tabs.safety')}
+      voiceLine="privacyHeader"
+      shouldAutoPlay={isStory}
+      demo={demo}
+      footer={isStory ? <Button label={t('safety.done')} hasArrow onPress={onDone} testID="privacy-done" /> : undefined}
+    >
       <Card tint="peach">
         <IconSquare>
           <IconShield color={palette.accent} />
@@ -41,9 +64,10 @@ export function SafetyScreen({ demo }: SafetyScreenProps) {
             {t('safety.retention')}
           </AppText>
           <AppText variant="body" isBold testID="safety-retention">
-            {t('safety.retentionValue', { days: formatNumber(DEFAULT_SETTINGS.retentionDays, lang) })}
+            {retentionLabel(retentionDays)}
           </AppText>
         </View>
+        {saved !== null && <ShorterRetention current={retentionDays} onChoose={(days) => saved.onSettings({ retentionDays: days })} />}
         <View style={[styles.divider, { backgroundColor: palette.line }]} />
         <Pressable
           accessibilityRole="button"
@@ -68,6 +92,14 @@ export function SafetyScreen({ demo }: SafetyScreenProps) {
           </AppText>
         )}
       </Card>
+      {saved !== null && <DeleteEverything onConfirm={saved.onDeleteEverything} />}
+      {saved !== null && (
+        <PlaceCard
+          isEnabled={saved.settings.placeLabelsEnabled}
+          labels={saved.settings.enabledPlaceLabels}
+          onChange={(isEnabled, labels) => saved.onSettings({ placeLabelsEnabled: isEnabled, enabledPlaceLabels: labels })}
+        />
+      )}
     </ScreenFrame>
   );
 }

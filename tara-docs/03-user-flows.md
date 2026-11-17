@@ -124,6 +124,8 @@ Trigger: stress in High zone (Calm ≤ 30) sustained for 60 seconds with good se
 
 ---
 
+🟡 *Phase 6: in the Try story, Home shows a **Continue** button once she has answered the High-stress prompt (Yes or No) or started cooling; it leads to Screen 4. After Yes/No on Screen 4 the live Calm meter is shown, with "Your brain is calm." when the zone is Calm.*
+
 ## Flow 5 — Save This Experience? + Age Check (Screen 5) 🟢
 
 1. "Do you want to save this experience?" **[Yes] [No]**
@@ -147,6 +149,8 @@ Trigger: stress in High zone (Calm ≤ 30) sustained for 60 seconds with good se
 4. Optional — **General place:** "Do you want to be able to tell your family a general place, like 'In the field'? We will NOT send your exact location, and we will NEVER send by ourselves. We will ask you every time." [Yes] [No]. Yes → she picks which labels to offer (In the field / At home / At the market / On the road) — no GPS involved.
 5. Optional — **Lock TARA:** "Lock TARA so only you can open it?" [Yes] [No]. 🔁 *New*
 6. **Done** → Daily mode, Home tab.
+
+🟡 *Phase 6: Family (step 3) and Lock (step 5) cards are added with Flow 10 (Phase 10) and App Lock (Phase 11), so no Yes on this screen promises a feature the build doesn't have. General place Yes pre-selects all four labels; she un-ticks the ones she won't use. Retention offers only shorter choices than the current one.*
 
 ---
 

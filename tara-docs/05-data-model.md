@@ -24,7 +24,7 @@ There is **no server database**. Every table below lives in one encrypted SQLite
 | Memory only | Per-second band powers, stress index, fit quality, the whole Try session, demo data | RAM, discarded |
 | Secure keystore | Database encryption key (256-bit random) | Android Keystore / iOS Keychain via `expo-secure-store` |
 | Encrypted DB | Everything in Section 2 | SQLite + SQLCipher, app-private storage |
-| Plain preferences | **Nothing personal.** Only `has_completed_setup` (boolean) and `language` so the app can render the lock/launch screen before decrypting | App-private key-value store |
+| Plain preferences 🟡 *(Phase 6: stored in `expo-secure-store` under `tara.prefs`, app-private, this-device-only)* | **Nothing personal.** Only `has_completed_setup` (boolean) and `language` so the app can render the lock/launch screen before decrypting | App-private key-value store |
 
 🟡 *If even the language preference is considered sensitive in the team's threat model, it can move into the encrypted DB at the cost of showing the lock screen in the phone's default language.*
 
@@ -57,6 +57,7 @@ No exact age, no phone number of her own, no email, no device ID.
 | `enabled_place_labels` | text (JSON array of fixed enum keys) | `[]` |
 | `app_lock` | bool | false |
 | `theme` | enum `sun`/`night`/`auto` | `sun` |
+| `pattern_offers` | bool | true — 🟡 *Phase 6: the Screen 4 answer ("Would you like that when I find a pattern?", `03` Flow 4) had no column; No → patterns are not offered.* |
 
 ### 2.3 `baseline`
 | Field | Type | Notes |
@@ -79,6 +80,8 @@ Old baselines are deleted when replaced (keep only active). Baseline is a calibr
 | `valid_seconds` | int 0–60 | Seconds with Good fit |
 | `zone` | enum `calm`/`rising`/`high`/`unknown` | `unknown` if valid_seconds < 30 |
 | `cooling_on` | bool | Cooling active for ≥ 30 s of the minute |
+
+🟡 *Phase 6: a minute with no valid second is not written (nothing to summarize). Rows store `ts_minute` as epoch ms plus `utc_offset_min` (minutes east of UTC at write time); `event` rows likewise carry `utc_offset_min`.*
 
 ≈ 1,440 rows/day max → ~10k rows for 7 days → well under 1 MB.
 
@@ -152,6 +155,8 @@ DELETE FROM event          WHERE ts        < :cutoff;
 6. Verify: app data directory contains only bundled/read-only content. (Tested in `12` §4.)
 
 ---
+
+🟡 *Phase 6: step 1 (stop cooling, disconnect & forget the tarha) is done by the app before calling `wipeEverything`; there are no scheduled notifications to cancel until Phase 8. Steps 2–4 are `store/` and are tested in order. Removal of `-wal`/`-shm` files by `expo-sqlite`'s `deleteDatabaseAsync` is confirmed on a device in the 12 §4 wipe check.*
 
 ## 5. Migrations
 

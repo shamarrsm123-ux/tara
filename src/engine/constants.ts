@@ -94,3 +94,8 @@ export const PATTERN_SLOT_STEP_MIN = 30;
 export const PATTERN_WINDOW_MIN = 60;
 export const PATTERN_ROUND_MIN = 15;
 export const PATTERN_MAX = 2;
+
+// Minute summaries (05 §2.4): zone is `unknown` below this many valid seconds; cooling counts as on for the
+// minute when active at least this long.
+export const MINUTE_ZONE_MIN_VALID_S = 30;
+export const MINUTE_COOLING_MIN_S = 30;

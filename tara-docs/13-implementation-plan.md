@@ -69,6 +69,8 @@ The last document before code. Each phase has an objective, work, tests and acce
 **Tests:** `12` §3 and the wipe / Try-No / encryption checks in §4.
 **Acceptance:** choosing No leaves no files; choosing Yes creates an encrypted DB; Delete Everything returns to a fresh install state.
 
+🟡 *Phase 6 notes: the store is tested against real SQLite (`node:sqlite`) through one contract suite shared with the web preview's memory-only store; SQLCipher encryption, keystore removal and the app-data-directory check are device checks (12 §4) run with Phase 7's phone. Minute summaries and events are written only after saving and only from a real tarha; until BLE exists, Daily mode after a relaunch shows "Tarha not connected".*
+
 ## Phase 7 — Hardware Prototype & BLE
 - **Tinkercad diagram:** Arduino Uno + potentiometer (sensor stand-in) + blue LED/mini fan via transistor (cooling) + battery; annotate "BLE module (ESP32 in real build)" and the sensor position behind the ear.
 - **ESP32 firmware:** GATT service per `07` §2; potentiometer → simulated band powers (Option A) or EXG front end (Option B); cooling driver with firmware limits; battery %; bonding.

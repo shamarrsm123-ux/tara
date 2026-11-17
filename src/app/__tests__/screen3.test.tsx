@@ -3,7 +3,9 @@ import type { ReactElement } from 'react';
 import { translatorFor } from '../../ui/i18n';
 import { AlertLessCard, PromptCard } from '../../ui/components/ActionCards';
 import { UiProvider } from '../../ui/theme/UiProvider';
+import { createMemoryStore } from '../../store/memoryStore';
 import { TryFlow } from '../TryFlow';
+import { INITIAL_TRY } from '../tryNavigation';
 
 const t = translatorFor('en');
 // Simulating 15+ minutes of fake time through the full UI takes a few real seconds.
@@ -27,7 +29,7 @@ const press = (id: string) => fireEvent.press(screen.getByTestId(id));
 
 /** Language → Welcome → Connect (demo) → Skip calibration → Home, with the Story scripted from Home. */
 async function toHome() {
-  await render(<TryFlow />);
+  await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
   await press('lang-en');
   await press('language-continue');
   await press('welcome-try');
