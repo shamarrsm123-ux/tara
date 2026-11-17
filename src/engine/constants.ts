@@ -99,3 +99,8 @@ export const PATTERN_MAX = 2;
 // minute when active at least this long.
 export const MINUTE_ZONE_MIN_VALID_S = 30;
 export const MINUTE_COOLING_MIN_S = 30;
+
+// Tarha connection (03 Flow 1, 09 §2)
+export const SCAN_TIMEOUT_S = 10;
+export const RECONNECT_BACKOFF_START_S = 2;
+export const RECONNECT_BACKOFF_MAX_S = 60;

@@ -83,6 +83,8 @@ Sent on change and at least every 10 s.
 
 **Firmware is the safety authority for cooling** (max duration, battery cutoff, optional overcool cutoff). The app's rules are a first layer; firmware is the last.
 
+🟡 *Phase 7: UUIDs are `7a1a0001…` (service), `…0002` (metrics), `…0003` (status), `…0004` (control) with the suffix `-5f3e-4b8a-9d2c-1e6f0a7b3c00`, recorded in `src/ble/protocol.ts` and `firmware/src/tara_protocol.h`; the advertised name is `TARA-XXXX`. The firmware marks every characteristic `*_ENC` (bonded, encrypted). `react-native-ble-plx` cannot read a link's security level, so the phone's "encrypted link" check is: the protected status read must succeed (Android bonds on first access); a device that does not require encryption cannot be detected from the phone — the firmware is the authority. Forgetting a tarha disconnects and clears the remembered device; removing the Android bond itself needs the phone's Bluetooth settings (no public API).*
+
 ### 2.6 Versioning
 `ver` mismatch → app shows "Please update TARA" and does not interpret metrics. New fields are only appended; old apps ignore trailing bytes when `ver` is supported.
 

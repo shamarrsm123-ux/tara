@@ -79,6 +79,8 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 **Tests:** `12` §5. **Acceptance:** turning the knob drives a real prompt; Yes lights the LED within 1 s; firmware stops cooling at its own limit with the app killed.
 
+🟡 *Phase 7 notes (2026-11-17): app `ble/` (scan, Blink, encrypted-link check, decode, reconnect backoff 2 → 60 s, Android-version permissions with TARA's explanation first) is tested against the firmware simulator; firmware (`firmware/`, ESP32 + NimBLE) shares one protocol header whose packets CI checks byte-for-byte against the app and builds with PlatformIO. The Tinkercad diagram is described step by step in `firmware/README.md` for the team to draw. Hardware acceptance (knob → prompt, LED within 1 s, firmware stop with the app killed) waits for the ESP32 + an Android phone. The release manifest requests only BLUETOOTH_SCAN (neverForLocation) + BLUETOOTH_CONNECT, and ACCESS_FINE_LOCATION capped at Android 11 (`plugins/withLegacyBleLocationOnly.js`).*
+
 ## Phase 8 — Daily Mode
 - Tabs: Home · My Days · Safety. Android foreground service; discreet notifications; mute; disconnect handling; phone battery warning.
 

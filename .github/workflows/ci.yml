@@ -62,3 +62,22 @@ jobs:
           name: release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 7
+
+  firmware:
+    name: ESP32 firmware builds · packets match the app (13 Phase 7)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Host check of the shared protocol header
+        run: |
+          c++ -std=c++17 -Wall -Wextra -Werror -Ifirmware/src firmware/test_host/check.cpp -o check
+          ./check | tee check.txt
+          grep -q "metrics $(grep -oP "FIRMWARE_METRICS_HEX = '\K[0-9a-f]+" src/ble/__tests__/firmwareParity.test.ts)" check.txt
+          grep -q "status $(grep -oP "FIRMWARE_STATUS_HEX = '\K[0-9a-f]+" src/ble/__tests__/firmwareParity.test.ts)" check.txt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install platformio
+      - name: Build firmware
+        working-directory: firmware
+        run: pio run

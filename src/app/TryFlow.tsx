@@ -12,7 +12,7 @@ import type { FoundTarha } from '../shared/tarhaSource';
 import type { Settings } from '../shared/types';
 import { playHaptic } from '../ui/haptics';
 import { CalibrateScreen } from '../ui/screens/CalibrateScreen';
-import { ConnectScreen, type ConnectPhase } from '../ui/screens/ConnectScreen';
+import { ConnectScreen } from '../ui/screens/ConnectScreen';
 import { ExampleScreen } from '../ui/screens/ExampleScreen';
 import { isCoolingActive } from '../ui/screens/HomeScreen';
 import { LanguageScreen } from '../ui/screens/LanguageScreen';
@@ -25,7 +25,10 @@ import { UiProvider } from '../ui/theme/UiProvider';
 import { CALIBRATION_DONE_PAUSE_MS } from '../ui/theme/tokens';
 import { translatorFor } from '../ui/i18n';
 import { playVoice } from '../ui/voice/player';
-import { createDailyRuntime, createDemoRuntime, discardRuntime, type Runtime } from './runtime';
+import { createBluetooth } from '../ble/createTarhaSource';
+import { systemClock } from '../shared/clock';
+import { createDemoRuntime, createTarhaRuntime, discardRuntime, type Runtime } from './runtime';
+import { useConnect } from './useConnect';
 import { canGoBack, reduceTry, type TryState } from './tryNavigation';
 import { usePersistence } from './usePersistence';
 
@@ -33,12 +36,6 @@ interface TryFlowProps {
   store: Store;
   /** Fresh install → Choose Language; already set up → Daily mode (decided by App.tsx before first render). */
   initial: TryState;
-}
-
-/** Real tarha scan. This build has no BLE module yet (Phase 7), so no tarha is ever found and Flow 1
- *  offers "Use demo instead" — the honest path on a phone, an emulator or the web preview. */
-async function scanForTarha(): Promise<FoundTarha[]> {
-  return [];
 }
 
 const NO_SUBSCRIPTION = () => () => undefined;
@@ -52,7 +49,8 @@ type Notice = 'deleted' | 'deleteFailed' | null;
 
 export function TryFlow({ store, initial }: TryFlowProps) {
   const [state, dispatch] = useReducer(reduceTry, initial);
-  const [connectPhase, setConnectPhase] = useState<ConnectPhase>('idle');
+  const [bluetooth] = useState(() => createBluetooth(systemClock));
+  const pairedRef = useRef<FoundTarha | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
@@ -103,20 +101,20 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   // The previous runtime is always torn down when it is replaced or the app closes.
   useEffect(() => () => void discardRuntime(runtime), [runtime]);
 
-  // Daily mode after a relaunch: monitor with the saved baseline (no tarha until BLE, Phase 7).
+  // Daily mode after a relaunch: monitor with the saved baseline and keep reconnecting to her tarha (03 Flow 7).
   useEffect(() => {
     if (state.screen !== 'daily' || runtime !== null) return undefined;
     let isCurrent = true;
-    store
-      .getBaseline()
-      .catch(() => DEFAULT_BASELINE)
-      .then((baseline) => {
-        if (isCurrent) setRuntime(createDailyRuntime(baseline, (a) => onActionRef.current(a)));
-      });
+    void Promise.all([store.getBaseline().catch(() => DEFAULT_BASELINE), store.getPairedTarha().catch(() => null)]).then(([baseline, paired]) => {
+      if (!isCurrent) return;
+      const source = bluetooth !== null && paired !== null ? bluetooth.source : undefined;
+      setRuntime(createTarhaRuntime(baseline, (a) => onActionRef.current(a), source));
+      if (source !== undefined && paired !== null) bluetooth?.source.keepConnecting(paired.deviceId);
+    });
     return () => {
       isCurrent = false;
     };
-  }, [state.screen, runtime, store]);
+  }, [state.screen, runtime, store, bluetooth]);
 
   // Settings are read from the store once she has saved.
   useEffect(() => {
@@ -143,17 +141,25 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     }
   }, [state.screen, runtime]);
 
-  const connect = async () => {
-    setConnectPhase('searching');
-    const found = await scanForTarha();
-    setConnectPhase(found.length > 0 ? 'connected' : 'notFound');
-  };
+  const connectFlow = useConnect(bluetooth, async (tarha) => {
+    if (bluetooth === null) throw new Error('no bluetooth');
+    const next = createTarhaRuntime(DEFAULT_BASELINE, (a) => onActionRef.current(a), bluetooth.source);
+    setRuntime(next);
+    try {
+      await next.session.connect(tarha.id);
+    } catch (error) {
+      setRuntime(null);
+      throw error;
+    }
+    pairedRef.current = tarha;
+    dispatch({ type: 'connected', isDemo: false });
+  });
 
   const startDemo = async () => {
     const next = createDemoRuntime(DEFAULT_BASELINE, (a) => onActionRef.current(a));
     setRuntime(next);
     await next.session.connect(DEMO_TARHA.id);
-    setConnectPhase('connected');
+    connectFlow.setPhase('connected');
     dispatch({ type: 'connected', isDemo: true });
   };
 
@@ -162,7 +168,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     void discardRuntime(runtime);
     setRuntime(null);
     setSettings(null);
-    setConnectPhase('idle');
+    connectFlow.setPhase('idle');
+    pairedRef.current = null;
     setHasStoryAction(false);
     hasStartedScenario.current = false;
     dispatch({ type: 'reset' });
@@ -222,10 +229,15 @@ export function TryFlow({ store, initial }: TryFlowProps) {
       {state.screen === 'welcome' && <WelcomeScreen onTry={() => dispatch({ type: 'tryToCalm' })} onBack={back} />}
       {state.screen === 'connect' && (
         <ConnectScreen
-          phase={connectPhase}
+          phase={connectFlow.phase}
           snapshot={snapshot}
           isDemo={state.isDemo}
-          onConnect={() => void connect()}
+          found={connectFlow.found}
+          needsLocationText={connectFlow.needsLocationText}
+          onConnect={connectFlow.start}
+          onAllow={connectFlow.allow}
+          onBlink={connectFlow.blink}
+          onChoose={connectFlow.choose}
           onUseDemo={() => void startDemo()}
           onNext={() => dispatch({ type: 'next' })}
           onBack={back}
@@ -275,13 +287,16 @@ export function TryFlow({ store, initial }: TryFlowProps) {
       {state.screen === 'save' && (
         <SaveScreen
           demo={demo}
-          onSave={() =>
-            store.createFromTrySession({
+          onSave={async () => {
+            await store.createFromTrySession({
               lang,
               baseline: snapshotRef.current?.baseline ?? DEFAULT_BASELINE,
               prefs: { patternOffers: state.patternOffers ?? true },
-            })
-          }
+            });
+            const paired = pairedRef.current;
+            // A real tarha is remembered so Daily mode reconnects to it; the demo tarha never is.
+            if (paired !== null && runtime?.demo === null) await store.setPairedTarha({ deviceId: paired.id, name: paired.name, firmware: '', pairedAt: Date.now() });
+          }}
           onNothingSaved={resetToFresh}
           onName={(name) => store.setDisplayName(name)}
           onAge={(group) => store.setAgeGroup(group)}

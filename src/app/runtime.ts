@@ -30,8 +30,8 @@ export function createDemoRuntime(baseline: Baseline, onAction: OnAction): Runti
   return { source: demo, session, demo };
 }
 
-export function createDailyRuntime(baseline: Baseline, onAction: OnAction): Runtime {
-  const source = new NoTarhaSource();
+/** A real tarha (or, with no Bluetooth/no paired tarha yet, the honest "none" source). */
+export function createTarhaRuntime(baseline: Baseline, onAction: OnAction, source: TarhaSource = new NoTarhaSource()): Runtime {
   return { source, session: createMonitorSession({ source, clock: systemClock, baseline, onAction }), demo: null };
 }
 
