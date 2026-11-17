@@ -9,9 +9,10 @@ import { Button } from '../components/Button';
 import { FitChip } from '../components/FitChip';
 import { LiveGraph } from '../components/LiveGraph';
 import { ScreenFrame } from '../components/ScreenFrame';
+import { Card } from '../components/Surface';
 import { TarhaIllustration } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
-import { FIT_NUDGE_MS, RADIUS, SPACE } from '../theme/tokens';
+import { FIT_NUDGE_MS, SPACE } from '../theme/tokens';
 import { playVoice } from '../voice/player';
 
 export type ConnectPhase = 'idle' | 'searching' | 'notFound' | 'connected';
@@ -57,7 +58,7 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
     );
 
   return (
-    <ScreenFrame testID="screen-connect" voiceLine="connectWear" onBack={onBack} demo={isDemo ? { isSpedUp: false } : null} footer={footer}>
+    <ScreenFrame testID="screen-connect" title={t('connect.title')} voiceLine="connectWear" onBack={onBack} demo={isDemo ? { isSpedUp: false } : null} footer={footer}>
       {live !== null ? (
         <View style={styles.live}>
           {live.fit !== null && <FitChip fit={live.fit} testID="connect-fit" />}
@@ -65,9 +66,9 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
           {isPoorFit && <AppText variant="body">{t('connect.fitMove')}</AppText>}
         </View>
       ) : (
-        <View style={[styles.hero, { backgroundColor: palette.accentSoft }]}>
+        <Card tint="peach" style={styles.hero}>
           <TarhaIllustration scarf={palette.surface} skin={SKIN} dot={palette.accent} isGlowing />
-        </View>
+        </Card>
       )}
       <AppText variant="body">{t('connect.instruction')}</AppText>
       {phase === 'searching' && (
@@ -85,6 +86,6 @@ export function ConnectScreen({ phase, snapshot, isDemo, onConnect, onUseDemo, o
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.card, paddingVertical: SPACE.lg },
+  hero: { alignItems: 'center' },
   live: { gap: SPACE.md },
 });

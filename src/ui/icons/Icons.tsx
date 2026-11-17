@@ -125,3 +125,48 @@ export function TarhaIllustration({
     </Svg>
   );
 }
+
+/** Tab bar and Safety icons (04 §10 tabs: Home · My Days · Safety). */
+export function IconHome({ color, size = DEFAULT_SIZE }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Path d="M5 14 L16 5 L27 14 V26 Q27 28 25 28 H20 V20 H12 V28 H7 Q5 28 5 26 Z" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function IconDays({ color, size = DEFAULT_SIZE }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Path d="M7 27 V17 M13 27 V9 M19 27 V14 M25 27 V5" stroke={color} strokeWidth={STROKE + 0.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function IconShield({ color, size = DEFAULT_SIZE }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Path d="M16 4 L26 8 V15 Q26 24 16 28 Q6 24 6 15 V8 Z" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+      <Path d="M11.5 16 L14.8 19.2 L20.5 12.8" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function IconNoInternet({ color, size = DEFAULT_SIZE }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Path d="M4 12 Q16 2 28 12 M8 17 Q16 10 24 17 M12 22 Q16 19 20 22" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+      <Circle cx={16} cy={26} r={1.8} fill={color} />
+      <Path d="M5 5 L27 27" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function IconClock({ color, size = DEFAULT_SIZE }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Circle cx={16} cy={16} r={11} stroke={color} strokeWidth={STROKE} />
+      <Path d="M16 10 V16 L20 19" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

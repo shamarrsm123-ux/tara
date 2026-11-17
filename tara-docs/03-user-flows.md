@@ -18,6 +18,8 @@ Two modes, one app:
 - **Try mode (first run):** a guided, linear story — Screens L, 0, 1, 1b, 2, 3, 4, 5, 6. This is also the judge demo. Nothing is written to storage until Screen 5 "Yes".
 - **Daily mode (after saving):** three tabs — **Home** · **My Days** · **Safety** (privacy, family, delete, settings).
 
+🟡 *Team decision 2026-11-16 (`04a` D6): the tab bar is also shown in Try mode from Home onward, with Try-mode content (nothing saved). Screens 4–6 of the Try story still follow in order when they are built.*
+
 ### 0.2 Defaults Used Where the Brief Was Silent
 - Back navigation in Try mode is allowed on every screen except Screen 3's active cooling (where Stop Cooling is the action).
 - Every voice line can be replayed with ▶; every prompt can also be answered by the big buttons — no gestures required.

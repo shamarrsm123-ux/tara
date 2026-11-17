@@ -1,4 +1,5 @@
-// Pure geometry for the Live Graph (04 §9.2): maps time/Calm to SVG coordinates. No React.
+// Pure geometry for the Live Graph (04 §9.2, 04a v2 D5): maps time/Calm to SVG coordinates, buckets the
+// seconds, and builds the smooth line and its fill. No React.
 import { CALM_ZONE_MIN_C, HIGH_ZONE_MAX_C } from '../../engine/constants';
 import type { GraphPoint, TimeBand } from '../../shared/types';
 
@@ -60,4 +61,54 @@ export function coolingRects(bands: readonly TimeBand[], frame: GraphFrame): { x
     .map((b) => ({ from: Math.max(b.fromMs, frame.startMs), to: Math.min(b.toMs, frame.endMs) }))
     .filter((b) => b.to > b.from)
     .map((b) => ({ x: xFor(b.from, frame), width: xFor(b.to, frame) - xFor(b.from, frame) }));
+}
+
+export interface Pt {
+  x: number;
+  y: number;
+}
+
+/** Bucket centres of valid bars, split wherever a bucket is missing or has no valid signal (04a v2 D5). */
+export function lineSegments(bars: readonly Bar[], frame: GraphFrame): Pt[][] {
+  const segments: Pt[][] = [];
+  let current: Pt[] = [];
+  let lastX: number | null = null;
+  for (const b of bars) {
+    const isAdjacent = lastX !== null && Math.abs(b.x - lastX - b.width) < 0.5;
+    if (b.calm === null) {
+      if (current.length > 0) segments.push(current);
+      current = [];
+      lastX = null;
+      continue;
+    }
+    if (!isAdjacent && current.length > 0) {
+      segments.push(current);
+      current = [];
+    }
+    current = [...current, { x: round(b.x + b.width / 2), y: round(yFor(b.calm, frame)) }];
+    lastX = b.x;
+  }
+  return current.length > 0 ? [...segments, current] : segments;
+}
+
+/** Smooth line through the points: each step is a cubic with flat tangents, so it never overshoots the data. */
+export function smoothPath(points: readonly Pt[]): string {
+  const [first, ...rest] = points;
+  if (first === undefined) return '';
+  let prev = first;
+  let d = `M${first.x} ${first.y}`;
+  for (const p of rest) {
+    const midX = round((prev.x + p.x) / 2);
+    d += ` C${midX} ${prev.y} ${midX} ${p.y} ${p.x} ${p.y}`;
+    prev = p;
+  }
+  return d;
+}
+
+/** The line closed down to the bottom edge, for the soft gradient fill. Needs at least two points. */
+export function areaPath(points: readonly Pt[], height: number): string {
+  const first = points[0];
+  const last = points[points.length - 1];
+  if (first === undefined || last === undefined || points.length < 2) return '';
+  return `${smoothPath(points)} L${last.x} ${height} L${first.x} ${height} Z`;
 }

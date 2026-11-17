@@ -55,6 +55,7 @@ export const am_ET: Strings = {
     try: 'አእምሮሽን ለማረጋጋት ሞክሪ',
   },
   connect: {
+    title: 'ልበሺና አገናኚ',
     instruction: 'ሻሹን ልበሺ። ሴንሰሩን ከጆሮሽ ጀርባ ቆዳሽን እንዲነካ አድርጊ።',
     button: 'አገናኚ',
     searching: 'ሻሽሽን እየፈለግን ነው…',
@@ -65,6 +66,7 @@ export const am_ET: Strings = {
     next: 'ቀጣይ',
   },
   calibrate: {
+    title: 'መረጋጋትሽን እንወቅ',
     intro: 'ጥላ ውስጥ ተቀመጪ። ቀስ ብለሽ ተንፍሺ። የአንቺ መረጋጋት ምን እንደሚመስል እየተማርኩ ነው።',
     breatheIn: 'ወደ ውስጥ ተንፍሺ',
     breatheOut: 'ወደ ውጭ ተንፍሺ',
@@ -103,5 +105,27 @@ export const am_ET: Strings = {
   },
   graph: {
     a11y: 'ባለፉት {{minutes}} ደቂቃዎች ያለው እርጋታ',
+  },
+  tabs: {
+    home: 'መነሻ',
+    myDays: 'ቀኖቼ',
+    safety: 'ደህንነት',
+    cool: 'አቀዝቅዢ',
+  },
+  home: {
+    greeting: 'ሰላም',
+    rightNow: 'አሁን',
+  },
+  myDays: {
+    today: 'ዛሬ',
+    keepsOnly: 'TARA የመጨረሻዎቹን {{days}} ቀናት ብቻ ይይዛል።',
+    tryNote: 'TARAን እየሞከርሽ ነው። እስካሁን ምንም አልተቀመጠም — መተግበሪያውን ስትዘጊ ይጠፋል።',
+  },
+  safety: {
+    header: 'ሁሉም የጭንቀት መረጃሽ የተሰራው በስልክሽ ላይ ብቻ ነው።',
+    retention: 'መረጃዬን ሰርዝ ከ',
+    retentionValue: '{{days}} ቀናት በኋላ',
+    noInternet: 'ኢንተርኔት አልተጠቀምንም',
+    noInternetInfo: 'TARA ኢንተርኔት አይጠቀምም። በአውሮፕላን ሁነታ ይሰራል።',
   },
 };

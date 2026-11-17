@@ -12,8 +12,9 @@ import type { FoundTarha } from '../shared/tarhaSource';
 import { playHaptic } from '../ui/haptics';
 import { CalibrateScreen } from '../ui/screens/CalibrateScreen';
 import { ConnectScreen, type ConnectPhase } from '../ui/screens/ConnectScreen';
-import { HomeScreen, isCoolingActive } from '../ui/screens/HomeScreen';
+import { isCoolingActive } from '../ui/screens/HomeScreen';
 import { LanguageScreen } from '../ui/screens/LanguageScreen';
+import { MainShell } from '../ui/screens/MainShell';
 import { WelcomeScreen } from '../ui/screens/WelcomeScreen';
 import { UiProvider } from '../ui/theme/UiProvider';
 import { CALIBRATION_DONE_PAUSE_MS } from '../ui/theme/tokens';
@@ -155,7 +156,7 @@ export function TryFlow() {
         />
       )}
       {state.screen === 'home' && snapshot !== null && runtime !== null && (
-        <HomeScreen
+        <MainShell
           snapshot={snapshot}
           demo={homeDemo}
           onCool={(on) => runtime.session.dispatch({ t: 'userCool', on })}

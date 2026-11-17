@@ -55,6 +55,7 @@ export const ar_EG: Strings = {
     try: 'جرّبي تهدّي مخك',
   },
   connect: {
+    title: 'البسي ووصّلي',
     instruction: 'البسي الطرحة. حطي الحسّاس ورا ودنك، لامس جلدك.',
     button: 'وصّلي',
     searching: 'بندوّر على طرحتك…',
@@ -65,6 +66,7 @@ export const ar_EG: Strings = {
     next: 'التالي',
   },
   calibrate: {
+    title: 'اتعرّفي على هدوئك',
     intro: 'اقعدي في الضل. خدي نفس بالراحة. أنا بتعلّم إزاي بتكوني هادية.',
     breatheIn: 'خدي نفس',
     breatheOut: 'طلّعي النفس',
@@ -103,5 +105,27 @@ export const ar_EG: Strings = {
   },
   graph: {
     a11y: 'الهدوء في آخر {{minutes}} دقيقة',
+  },
+  tabs: {
+    home: 'الرئيسية',
+    myDays: 'أيامي',
+    safety: 'الأمان',
+    cool: 'برّدي',
+  },
+  home: {
+    greeting: 'أهلاً',
+    rightNow: 'دلوقتي',
+  },
+  myDays: {
+    today: 'النهارده',
+    keepsOnly: 'تارا بتحتفظ بآخر {{days}} أيام بس.',
+    tryNote: 'إنتي بتجرّبي تارا. مفيش حاجة اتحفظت لسه — ده هيختفي لما تقفلي التطبيق.',
+  },
+  safety: {
+    header: 'كل بيانات التوتر بتاعتك اتعالجت على موبايلك بس.',
+    retention: 'امسحي بياناتي بعد',
+    retentionValue: '{{days}} أيام',
+    noInternet: 'مفيش إنترنت مستخدم',
+    noInternetInfo: 'تارا مش بتستخدم الإنترنت. بتشتغل في وضع الطيران.',
   },
 };

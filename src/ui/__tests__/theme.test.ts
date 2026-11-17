@@ -15,11 +15,11 @@ describe('contrast math', () => {
   });
 });
 
-describe('Sun palette is the 04a table (zone and cooling colors still 04 §3)', () => {
+describe('Sun palette is the 04a v2 table (zone and cooling colors still 04 §3)', () => {
   test('uses the specified colors', () => {
     const { bg, surface, text, textMuted, sand, calm, rising, high, cool, demo } = PALETTES.sun;
-    expect([bg, surface, text, textMuted, sand]).toEqual(['#F5F5F7', '#FFFFFF', '#111114', '#52525B', '#E5E5EA']);
-    expect([PALETTES.sun.accent, PALETTES.sun.ink, PALETTES.sun.chip]).toEqual(['#E96B10', '#18181B', '#EFEFF2']);
+    expect([bg, surface, text, textMuted, sand]).toEqual(['#FFFFFF', '#FFFFFF', '#1C1C1E', '#52525B', '#ECECEF']);
+    expect([PALETTES.sun.accent, PALETTES.sun.ink, PALETTES.sun.chip]).toEqual(['#EF6A4A', '#1C1C1E', '#F4F4F6']);
     expect([calm, rising, high, cool, demo]).toEqual(['#1B7F3B', '#B87900', '#C62828', '#1565C0', '#FFD54F']);
   });
 
@@ -58,6 +58,16 @@ describe.each(THEMES)('%s theme meets WCAG AA (04 §3)', (theme) => {
 
   test('text on chips is AAA', () => {
     expect(contrastRatio(p.text, p.chip)).toBeGreaterThanOrEqual(WCAG.aaaNormal);
+  });
+
+  test.each(['tintPeach', 'tintApricot', 'tintLemon', 'accentSoft'] as const)('text on %s cards is AAA and muted text is AA', (token) => {
+    expect(contrastRatio(p.text, p[token])).toBeGreaterThanOrEqual(WCAG.aaaNormal);
+    expect(contrastRatio(p.textMuted, p[token])).toBeGreaterThanOrEqual(WCAG.aaNormal);
+  });
+
+  test('inactive tab icons are visible (≥ 3:1) and the selected day pill label is AA-large', () => {
+    expect(contrastRatio(p.neutral, p.surface)).toBeGreaterThanOrEqual(WCAG.aaLarge);
+    expect(contrastRatio(p.onAccent, p.accent)).toBeGreaterThanOrEqual(WCAG.aaLarge);
   });
 
   test('demo ribbon text is AA', () => {

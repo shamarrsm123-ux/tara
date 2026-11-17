@@ -27,7 +27,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F7' },
-  dev: { position: 'absolute', left: 8, bottom: 8, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.55)' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  dev: { position: 'absolute', right: 8, bottom: 96, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.55)' },
   devText: { color: '#FFFFFF', fontSize: 12 },
 });

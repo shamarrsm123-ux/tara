@@ -12,6 +12,8 @@ interface AppTextProps extends TextProps {
 }
 
 const BOLD_VARIANTS: ReadonlySet<TypeVariant> = new Set(['calmNumber', 'headline', 'title', 'button', 'zone']);
+/** Only the hero numbers use the heaviest weight; other bold text is SemiBold (04a v2 §3). */
+const HEAVY_VARIANTS: ReadonlySet<TypeVariant> = new Set(['calmNumber']);
 
 export function AppText({ variant, color = 'text', isBold, style, ...rest }: AppTextProps) {
   const { palette, fonts, fontScale, lineHeightRatio, isRtl } = useUi();
@@ -23,7 +25,7 @@ export function AppText({ variant, color = 'text', isBold, style, ...rest }: App
       style={[
         {
           color: palette[color],
-          fontFamily: bold ? fonts.bold : fonts.regular,
+          fontFamily: !bold ? fonts.regular : HEAVY_VARIANTS.has(variant) ? fonts.bold : fonts.semibold,
           fontSize: size,
           lineHeight: Math.round(size * lineHeightRatio),
           // Explicit, so runs with no letters (e.g. "٧٢٪") still order right-to-left in Arabic.

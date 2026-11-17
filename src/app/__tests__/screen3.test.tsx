@@ -123,3 +123,50 @@ describe('Screen 3 cards', () => {
     expect(onAnswer).toHaveBeenCalledWith(true);
   });
 });
+
+describe('Tabs and the centre Cool button (04 §10, 04a v2 D6)', () => {
+  beforeEach(() => jest.useFakeTimers({ now: new Date(2026, 10, 16, 14, 0) }));
+  afterEach(() => jest.useRealTimers());
+
+  test('Home · My Days · Safety switch screens and keep the demo label on each', async () => {
+    await toHome();
+    expect(screen.getByTestId('tab-home').props.accessibilityState).toMatchObject({ selected: true });
+
+    await press('tab-myDays');
+    expect(screen.getByTestId('screen-my-days')).toBeTruthy();
+    expect(screen.getByTestId('my-days-try-note')).toHaveTextContent(t('myDays.tryNote'));
+    expect(screen.getByText(t('demo.ribbon'))).toBeTruthy();
+
+    await press('tab-safety');
+    expect(screen.getByTestId('screen-safety')).toBeTruthy();
+    expect(screen.getByText(t('safety.header'))).toBeTruthy();
+    expect(screen.queryByTestId('safety-no-internet-info')).toBeNull();
+    await press('safety-no-internet');
+    expect(screen.getByTestId('safety-no-internet-info')).toHaveTextContent(t('safety.noInternetInfo'));
+    expect(screen.getByText(t('demo.ribbon'))).toBeTruthy();
+
+    await press('tab-home');
+    expect(screen.getByTestId('screen-home')).toBeTruthy();
+  });
+
+  test('the High-stress prompt appears over any tab, and Yes brings her to the cooling card on Home', async () => {
+    await toHome();
+    await press('tab-safety');
+    await seconds(11);
+    expect(screen.getByTestId('prompt')).toBeTruthy();
+    await press('prompt-yes');
+    await seconds(1);
+    expect(screen.getByTestId('screen-home')).toBeTruthy();
+    expect(screen.getByTestId('cooling-card')).toBeTruthy();
+  });
+
+  test('Cool from another tab starts cooling and shows Home; while on, the centre button shows "On"', async () => {
+    await toHome();
+    await press('tab-myDays');
+    await press('home-cool');
+    await seconds(1);
+    expect(screen.getByTestId('screen-home')).toBeTruthy();
+    expect(screen.getByTestId('cooling-card')).toBeTruthy();
+    expect(screen.getByTestId('home-cooling-on').props.accessibilityState).toMatchObject({ disabled: true });
+  });
+});

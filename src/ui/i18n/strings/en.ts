@@ -54,6 +54,7 @@ export const en = {
     try: 'Try to Calm Your Brain',
   },
   connect: {
+    title: 'Wear & Connect',
     instruction: 'Wear the tarha. Put the sensor behind your ear, touching your skin.',
     button: 'Connect',
     searching: 'Looking for your tarha…',
@@ -64,6 +65,7 @@ export const en = {
     next: 'Next',
   },
   calibrate: {
+    title: 'Learn Your Calm',
     intro: 'Sit in the shade. Breathe slowly. I\'m learning what calm looks like for you.',
     breatheIn: 'Breathe in',
     breatheOut: 'Breathe out',
@@ -102,6 +104,28 @@ export const en = {
   },
   graph: {
     a11y: 'Calm over the last {{minutes}} minutes',
+  },
+  tabs: {
+    home: 'Home',
+    myDays: 'My Days',
+    safety: 'Safety',
+    cool: 'Cool',
+  },
+  home: {
+    greeting: 'Hello',
+    rightNow: 'Right now',
+  },
+  myDays: {
+    today: 'Today',
+    keepsOnly: 'TARA keeps only the last {{days}} days.',
+    tryNote: 'You are trying TARA. Nothing is saved yet — this disappears when you close the app.',
+  },
+  safety: {
+    header: 'All your stress data was processed on your phone only.',
+    retention: 'Delete my data after',
+    retentionValue: '{{days}} days',
+    noInternet: 'No internet used',
+    noInternetInfo: 'TARA doesn\'t use the internet. It works in airplane mode.',
   },
 };
 

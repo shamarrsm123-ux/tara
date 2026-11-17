@@ -1,6 +1,6 @@
-// Design tokens. Visual language from 04a (team decision 2026-11-16): neutral near-white, white cards, orange
-// action color, near-black panels; zone colors and blue-for-cooling unchanged from 04 §3. Night mirrors
-// Sun with adjusted lightness — contrast-checked in theme tests.
+// Design tokens. Visual language from 04a (v2, 2026-11-16): white screens, soft peach-tinted cards, one coral
+// action color, thin outlined chips and round buttons; zone colors and blue-for-cooling unchanged from 04 §3.
+// Night mirrors Sun with adjusted lightness — contrast-checked in theme tests.
 
 export type ThemeName = 'sun' | 'night';
 
@@ -23,6 +23,12 @@ export interface Palette {
   onInk: string;
   /** Chip / inactive pill background. */
   chip: string;
+  /** Soft tinted card fills (04a v2 §2): peach, apricot, lemon. */
+  tintPeach: string;
+  tintApricot: string;
+  tintLemon: string;
+  /** Hairline borders of outlined chips and round buttons. */
+  line: string;
   /** Text/icons drawn on a filled calm/high/cool background. */
   onAccent: string;
   /** Text on the demo yellow. */
@@ -39,53 +45,61 @@ export interface Palette {
 
 export const PALETTES: Record<ThemeName, Palette> = {
   sun: {
-    bg: '#F5F5F7',
+    bg: '#FFFFFF',
     surface: '#FFFFFF',
-    text: '#111114',
+    text: '#1C1C1E',
     textMuted: '#52525B',
-    sand: '#E5E5EA',
+    sand: '#ECECEF',
     calm: '#1B7F3B',
     rising: '#B87900',
     high: '#C62828',
     cool: '#1565C0',
     demo: '#FFD54F',
-    accent: '#E96B10',
-    accentSoft: '#FFEEE2',
-    ink: '#18181B',
+    accent: '#EF6A4A',
+    accentSoft: '#FDECE7',
+    ink: '#1C1C1E',
     onInk: '#FFFFFF',
-    chip: '#EFEFF2',
+    chip: '#F4F4F6',
+    tintPeach: '#FDF2EE',
+    tintApricot: '#FEF5EC',
+    tintLemon: '#FBFAEC',
+    line: '#ECECEF',
     onAccent: '#FFFFFF',
     onDemo: '#1A1714',
     bandCalm: '#E4F2E7',
     bandRising: '#FBF0D9',
     bandHigh: '#FAE3E3',
-    bandCool: 'rgba(21, 101, 192, 0.14)',
-    track: '#E5E5EA',
+    bandCool: 'rgba(21, 101, 192, 0.12)',
+    track: '#F0F0F2',
     neutral: '#7A7A85',
   },
   night: {
-    bg: '#111113',
-    surface: '#1C1C1F',
+    bg: '#0F0F11',
+    surface: '#1A1A1D',
     text: '#F2F2F5',
     textMuted: '#B8B8C0',
-    sand: '#2E2E33',
+    sand: '#2C2C31',
     calm: '#6FCF8A',
     rising: '#F2B544',
     high: '#FF8A80',
     cool: '#82B9F5',
     demo: '#FFD54F',
-    accent: '#FF8A3D',
-    accentSoft: '#3A2414',
+    accent: '#FF8466',
+    accentSoft: '#3A221B',
     ink: '#26262B',
     onInk: '#F2F2F5',
-    chip: '#2A2A2E',
+    chip: '#26262B',
+    tintPeach: '#2A1D19',
+    tintApricot: '#2A2219',
+    tintLemon: '#25241A',
+    line: '#2C2C31',
     onAccent: '#1A1714',
     onDemo: '#1A1714',
     bandCalm: '#26372A',
     bandRising: '#3B3020',
     bandHigh: '#3E2522',
-    bandCool: 'rgba(130, 185, 245, 0.22)',
-    track: '#2E2E33',
+    bandCool: 'rgba(130, 185, 245, 0.2)',
+    track: '#2A2A2F',
     neutral: '#8E8E98',
   },
 };
@@ -110,20 +124,34 @@ export const STATUS_TEXT_MIN_SIZE = 20;
 export const TOUCH_MIN = 56;
 export const PRIMARY_BUTTON_HEIGHT = 64;
 export const SPACE = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
-export const RADIUS = { chip: 999, card: 28, button: 999 } as const;
+export const RADIUS = { chip: 999, card: 24, tile: 20, tag: 10, button: 999 } as const;
 
-/** One soft shadow for cards and round buttons (04a §3). */
+/** One very soft shadow for white cards and the tab bar (04a v2 §3). */
 export const SHADOW = {
-  shadowColor: '#000000',
-  shadowOpacity: 0.07,
-  shadowRadius: 18,
-  shadowOffset: { width: 0, height: 6 },
-  elevation: 3,
+  shadowColor: '#1C1C1E',
+  shadowOpacity: 0.06,
+  shadowRadius: 24,
+  shadowOffset: { width: 0, height: 8 },
+  elevation: 2,
 } as const;
 
-/** Calm meter (04 §9.1). */
-export const RING_STROKE = 18;
-export const RING_SIZE = 240;
+/** Coral glow under the primary button and the centre Cool button (04a v2 §4). */
+export const ACCENT_GLOW = {
+  shadowColor: '#EF6A4A',
+  shadowOpacity: 0.35,
+  shadowRadius: 16,
+  shadowOffset: { width: 0, height: 8 },
+  elevation: 6,
+} as const;
+
+/** Bottom tab bar (04 §10: icon + label, 64dp) with the raised centre Cool button (04a v2 D6). */
+export const TAB_BAR_HEIGHT = 72;
+export const FAB_SIZE = 64;
+export const FAB_LIFT = 26;
+
+/** Calm meter ring (04a v2 D1). */
+export const RING_STROKE = 22;
+export const RING_SIZE = 260;
 
 /** Motion (04 §9.1, §9.5, §11). */
 export const METER_EASE_MS = 400;

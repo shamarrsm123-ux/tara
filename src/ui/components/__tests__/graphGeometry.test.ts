@@ -1,4 +1,4 @@
-import { barSeries, barZone, coolingRects, xFor, yFor, type GraphFrame } from '../graphGeometry';
+import { areaPath, barSeries, barZone, coolingRects, lineSegments, smoothPath, xFor, yFor, type GraphFrame } from '../graphGeometry';
 
 const frame: GraphFrame = { width: 600, height: 100, startMs: 0, endMs: 600_000 };
 
@@ -45,5 +45,46 @@ describe('graph geometry (04a D5)', () => {
         frame,
       ),
     ).toEqual([{ x: 0, width: 60 }]);
+  });
+
+  test('line segments join neighbouring valid buckets at their centres and break at gaps (04a v2 D5)', () => {
+    const points = [
+      { tMs: 1000, calm: 50 },
+      { tMs: 11_000, calm: 100 },
+      { tMs: 21_000, calm: null },
+      { tMs: 41_000, calm: 0 },
+    ];
+    const bars = barSeries(points, frame, 60);
+    expect(lineSegments(bars, frame)).toEqual([
+      [
+        { x: 5, y: 50 },
+        { x: 15, y: 0 },
+      ],
+      [{ x: 45, y: 100 }],
+    ]);
+  });
+
+  test('smooth path uses flat-tangent curves that never overshoot the data', () => {
+    expect(smoothPath([])).toBe('');
+    expect(smoothPath([{ x: 0, y: 10 }])).toBe('M0 10');
+    expect(
+      smoothPath([
+        { x: 0, y: 10 },
+        { x: 20, y: 30 },
+      ]),
+    ).toBe('M0 10 C10 10 10 30 20 30');
+  });
+
+  test('area path closes the line down to the baseline', () => {
+    expect(
+      areaPath(
+        [
+          { x: 0, y: 10 },
+          { x: 20, y: 30 },
+        ],
+        100,
+      ),
+    ).toBe('M0 10 C10 10 10 30 20 30 L20 100 L0 100 Z');
+    expect(areaPath([{ x: 5, y: 10 }], 100)).toBe('');
   });
 });

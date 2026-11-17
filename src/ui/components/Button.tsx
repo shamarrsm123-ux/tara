@@ -1,9 +1,9 @@
-// Pill buttons (04a §4). Filled = the main choice (orange, with the dark round "→" badge for primary
-// actions); outlined = the other choice, same size so No is never hidden (04 §5). 64dp tall.
+// Pill buttons (04a v2 §4). Filled = the main choice (coral with a soft coral glow and a trailing arrow for
+// "go on" actions); outlined = the other choice, same size so No is never hidden (04 §5). 64dp tall.
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useUi } from '../theme/UiProvider';
-import { PRIMARY_BUTTON_HEIGHT, RADIUS, SHADOW, SPACE } from '../theme/tokens';
+import { ACCENT_GLOW, PRIMARY_BUTTON_HEIGHT, RADIUS, SPACE } from '../theme/tokens';
 import { AppText } from './AppText';
 
 export type ButtonTone = 'accent' | 'ink' | 'cool' | 'high' | 'neutral';
@@ -13,22 +13,20 @@ interface ButtonProps {
   onPress: () => void;
   variant?: 'filled' | 'outlined';
   tone?: ButtonTone;
-  /** Dark round arrow badge at the leading edge (primary actions). */
+  /** Trailing arrow for actions that move forward. */
   hasArrow?: boolean;
   isDisabled?: boolean;
   testID?: string;
 }
 
-const BADGE = 48;
-const BORDER_WIDTH = 2;
+const BORDER_WIDTH = 1.5;
+const ARROW = 22;
 
-function ArrowBadge({ color, background, isFlipped }: { color: string; background: string; isFlipped: boolean }) {
+function Arrow({ color, isFlipped }: { color: string; isFlipped: boolean }) {
   return (
-    <View style={[styles.badge, { backgroundColor: background }]}>
-      <Svg width={22} height={22} viewBox="0 0 24 24" style={isFlipped ? { transform: [{ scaleX: -1 }] } : undefined}>
-        <Path d="M5 12 H19 M13 6 L19 12 L13 18" stroke={color} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      </Svg>
-    </View>
+    <Svg width={ARROW} height={ARROW} viewBox="0 0 24 24" style={isFlipped ? styles.flipped : undefined}>
+      <Path d="M5 12 H19 M13 6 L19 12 L13 18" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </Svg>
   );
 }
 
@@ -46,21 +44,23 @@ export function Button({ label, onPress, variant = 'filled', tone = 'accent', ha
       testID={testID}
       style={({ pressed }) => [
         styles.base,
-        isFilled && styles.shadow,
+        isFilled && tone === 'accent' && !isDisabled && ACCENT_GLOW,
         {
           backgroundColor: isFilled ? fill : palette.surface,
           borderColor: isFilled ? fill : tone === 'neutral' || tone === 'ink' ? palette.sand : fill,
           opacity: isDisabled ? 0.45 : pressed ? 0.85 : 1,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
         },
       ]}
     >
-      {hasArrow && isFilled && <ArrowBadge color={palette.onInk} background={palette.ink} isFlipped={isRtl} />}
-      <View style={styles.labelBox}>
-        <AppText variant="button" color={labelColor} style={styles.label}>
-          {label}
-        </AppText>
-      </View>
-      {hasArrow && isFilled && <View style={styles.badgeSpacer} />}
+      <AppText variant="button" color={labelColor} style={styles.label}>
+        {label}
+      </AppText>
+      {hasArrow && isFilled && (
+        <View style={styles.arrow}>
+          <Arrow color={palette[labelColor]} isFlipped={isRtl} />
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -72,12 +72,12 @@ const styles = StyleSheet.create({
     borderWidth: BORDER_WIDTH,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     alignSelf: 'stretch',
-    paddingHorizontal: SPACE.sm,
+    paddingHorizontal: SPACE.lg,
+    gap: SPACE.sm,
   },
-  shadow: SHADOW,
-  badge: { width: BADGE, height: BADGE, borderRadius: BADGE / 2, alignItems: 'center', justifyContent: 'center' },
-  badgeSpacer: { width: BADGE },
-  labelBox: { flex: 1, alignItems: 'center', paddingHorizontal: SPACE.sm },
-  label: { textAlign: 'center' },
+  label: { textAlign: 'center', flexShrink: 1 },
+  arrow: { marginStart: SPACE.xs },
+  flipped: { transform: [{ scaleX: -1 }] },
 });

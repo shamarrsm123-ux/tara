@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import type { MonitorSnapshot } from '../../engine/session';
 import { AppText } from '../components/AppText';
-import { SegmentedArc } from '../components/CalmMeter';
+import { ProgressRing } from '../components/CalmMeter';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { useUi } from '../theme/UiProvider';
-import { BREATHE_IN_MS, BREATHE_OUT_MS, TOUCH_MIN } from '../theme/tokens';
+import { BREATHE_IN_MS, BREATHE_OUT_MS, SPACE, TOUCH_MIN } from '../theme/tokens';
 import { useReduceMotion } from '../theme/useReduceMotion';
 import { playVoice } from '../voice/player';
 
@@ -19,8 +19,6 @@ interface CalibrateScreenProps {
   onBack: () => void;
 }
 
-const ARC_W = 300;
-const ARC_H = 250;
 const BREATH = 150;
 const SMALL = 0.6;
 
@@ -58,11 +56,14 @@ export function CalibrateScreen({ snapshot, isDemo, onSkip, onBack }: CalibrateS
   const message = isDone ? t('calibrate.done') : isPaused ? t('connect.fitMove') : isInhale ? t('calibrate.breatheIn') : t('calibrate.breatheOut');
 
   return (
-    <ScreenFrame testID="screen-calibrate" voiceLine="calibrateIntro" onBack={onBack} demo={isDemo ? { isSpedUp: false } : null}>
-      <AppText variant="body">{t('calibrate.intro')}</AppText>
+    <ScreenFrame testID="screen-calibrate" title={t('calibrate.title')} voiceLine="calibrateIntro" onBack={onBack} demo={isDemo ? { isSpedUp: false } : null}>
+      <AppText variant="body" color="textMuted" style={styles.center}>
+        {t('calibrate.intro')}
+      </AppText>
       <View style={styles.circleBox} accessible accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}>
-        <SegmentedArc fraction={progress} color={isPaused ? palette.neutral : palette.accent} trackColor={palette.track} />
-        <Animated.View style={[styles.breath, { backgroundColor: palette.accentSoft, transform: [{ scale }] }]} />
+        <ProgressRing fraction={progress} color={isPaused ? palette.neutral : palette.accent} trackColor={palette.track}>
+          <Animated.View style={[styles.breath, { backgroundColor: palette.accentSoft, transform: [{ scale }] }]} />
+        </ProgressRing>
       </View>
       <AppText variant="question" style={styles.center} testID="calibrate-message">
         {message}
@@ -79,7 +80,7 @@ export function CalibrateScreen({ snapshot, isDemo, onSkip, onBack }: CalibrateS
 }
 
 const styles = StyleSheet.create({
-  circleBox: { width: ARC_W, height: ARC_H, alignSelf: 'center', alignItems: 'center', paddingTop: 72 },
+  circleBox: { alignSelf: 'center', paddingVertical: SPACE.md },
   breath: { width: BREATH, height: BREATH, borderRadius: BREATH / 2 },
   center: { textAlign: 'center' },
   skip: { minHeight: TOUCH_MIN, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 16 },
