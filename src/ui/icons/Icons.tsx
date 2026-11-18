@@ -134,3 +134,11 @@ export function IconBellOff({ color, size = DEFAULT_SIZE }: IconProps) {
     </Svg>
   );
 }
+
+export function IconHelp({ color, size = DEFAULT_SIZE }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <Path d="M10 17 V9 Q10 7 12 7 Q14 7 14 9 V15 M14 14 V6 Q14 4 16 4 Q18 4 18 6 V14 M18 14 V7 Q18 5 20 5 Q22 5 22 7 V15 M22 13 Q22 11 24 11 Q26 11 26 13 V19 Q26 27 18 28 Q12 28 9 22 L6 17 Q5 15 7 14 Q9 13 10 15 L11 17" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

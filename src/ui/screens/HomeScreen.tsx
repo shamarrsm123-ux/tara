@@ -16,7 +16,7 @@ import { BackButton, ScreenFrame } from '../components/ScreenFrame';
 import { LogoMark } from '../art/LogoMark';
 import type { BackdropMood } from '../theme/tokens';
 import { Card, SectionTitle, type CardTint } from '../components/Surface';
-import { IconBattery, IconBellOff, IconLink, IconSnow } from '../icons/Icons';
+import { IconBattery, IconBellOff, IconHelp, IconLink, IconSnow } from '../icons/Icons';
 import { MuteChoices, MutedNotice } from '../components/MuteControl';
 import { muteUntilMono } from '../../engine/mute';
 import { useUi } from '../theme/UiProvider';
@@ -34,6 +34,8 @@ interface HomeScreenProps {
   onMute?: (untilMono: number | null) => void;
   /** Cards shown above the meter (smart-reminder offer, reminder, notices). */
   banner?: ReactNode;
+  /** Opens the help request (03 Flow 11 A); only once she has saved. */
+  onHelp?: () => void;
 }
 
 const MS_PER_S = 1000;
@@ -56,7 +58,7 @@ export function moodFor(s: MonitorSnapshot): BackdropMood {
   return s.zone;
 }
 
-function Greeting({ snapshot, onBack, onMutePress }: { snapshot: MonitorSnapshot; onBack?: () => void; onMutePress?: () => void }) {
+function Greeting({ snapshot, onBack, onMutePress, onHelpPress }: { snapshot: MonitorSnapshot; onBack?: () => void; onMutePress?: () => void; onHelpPress?: () => void }) {
   const { t, lang, palette } = useUi();
   const isConnected = snapshot.connection === 'connected';
   return (
@@ -74,6 +76,17 @@ function Greeting({ snapshot, onBack, onMutePress }: { snapshot: MonitorSnapshot
           {formatDate(snapshot.nowMs, lang)}
         </AppText>
       </View>
+      {onHelpPress !== undefined && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('help.button')}
+          onPress={onHelpPress}
+          style={({ pressed }) => [styles.avatar, styles.outlined, { borderColor: palette.line, backgroundColor: palette.surface, opacity: pressed ? 0.7 : 1 }]}
+          testID="help-button"
+        >
+          <IconHelp color={palette.accent} size={26} />
+        </Pressable>
+      )}
       {onMutePress !== undefined && (
         <Pressable
           accessibilityRole="button"
@@ -157,7 +170,7 @@ function RightNow({ snapshot }: { snapshot: MonitorSnapshot }) {
   );
 }
 
-export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinue, onMute, banner }: HomeScreenProps) {
+export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinue, onMute, banner, onHelp }: HomeScreenProps) {
   const [isChoosingMute, setIsChoosingMute] = useState(false);
   const { t } = useUi();
   const e = snapshot.engine;
@@ -166,7 +179,7 @@ export function HomeScreen({ snapshot, demo, onCool, onExtend, onBack, onContinu
   const totalS = e.coolingEndsAtMono === null || e.coolingStartedAtMono === null ? null : (e.coolingEndsAtMono - e.coolingStartedAtMono) / MS_PER_S;
 
   return (
-    <ScreenFrame testID="screen-home" demo={demo} backdrop={moodFor(snapshot)} header={<Greeting snapshot={snapshot} onBack={isCooling ? undefined : onBack} onMutePress={onMute !== undefined ? () => setIsChoosingMute((v) => !v) : undefined} />}>
+    <ScreenFrame testID="screen-home" demo={demo} backdrop={moodFor(snapshot)} header={<Greeting snapshot={snapshot} onBack={isCooling ? undefined : onBack} onMutePress={onMute !== undefined ? () => setIsChoosingMute((v) => !v) : undefined} onHelpPress={onHelp} />}>
       {isChoosingMute && onMute !== undefined && (
         <MuteChoices
           onChoose={(choice) => {

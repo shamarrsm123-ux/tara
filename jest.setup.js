@@ -16,3 +16,9 @@ jest.mock('expo-battery', () => ({
   getBatteryLevelAsync: jest.fn(async () => 0.8),
   addBatteryLevelListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
+
+// SMS composer under Jest: records calls so tests can prove it opens only from the preview's Send (12 §4 P8).
+jest.mock('expo-sms', () => ({
+  isAvailableAsync: jest.fn(async () => true),
+  sendSMSAsync: jest.fn(async () => ({ result: 'unknown' })),
+}));

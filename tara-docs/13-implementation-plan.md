@@ -100,6 +100,8 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 **Acceptance:** `12` §6 flow 5; SMS composer is opened only from the preview Send handler; message text exactly matches the preview.
 
+🟡 *Phase 10 notes (2026-11-17): contacts are typed in (name + number starting with +); the phone's contact picker is left out so TARA never requests a contacts permission. Help is on Home once she has saved (header button) and also opens when the engine asks (Flow 11 B, Yes/No reported to the engine). "Add family" from the help flow opens the Safety tab. The composer (`expo-sms`) is opened only by the preview's Send button and the family test message; the only record kept is a `help_opened_sms` event (time only), and never from demo data. Screen 6 now shows the 100%-optional Family card.*
+
 ## Phase 11 — Battery Alerts, App Lock, Settings
 - Battery thresholds (`07` §7), App Lock with phone authentication, all Settings items (`03` Flow 16), recalibration.
 

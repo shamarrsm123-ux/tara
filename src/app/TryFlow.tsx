@@ -7,7 +7,12 @@ import { DEMO_TARHA } from '../demo/DemoTarhaSource';
 import type { MonitorSession, MonitorSnapshot } from '../engine/session';
 import type { EngineAction } from '../engine/types';
 import { DEFAULT_BASELINE } from '../signal/stress';
-import type { Store } from '../shared/storePort';
+import type { Contact, Store } from '../shared/storePort';
+import { isTaraError } from '../shared/errors';
+import { openComposer } from '../sos/composer';
+import { buildHelpMessage, buildTestMessage } from '../sos/message';
+import type { HelpTools } from '../ui/screens/HelpFlow';
+import type { FamilyTools } from '../ui/screens/FamilySection';
 import type { FoundTarha } from '../shared/tarhaSource';
 import type { Settings } from '../shared/types';
 import { playHaptic } from '../ui/haptics';
@@ -60,6 +65,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   const pairedRef = useRef<FoundTarha | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [profileName, setProfileName] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [hasStoryAction, setHasStoryAction] = useState(false);
   const hasStartedScenario = useRef(false);
@@ -135,6 +142,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   useEffect(() => {
     if (!isSetUp || settings !== null) return;
     void store.getSettings().then(setSettings, () => undefined);
+    void store.listContacts().then(setContacts, () => undefined);
+    void store.getProfile().then((p) => setProfileName(p.displayName), () => undefined);
   }, [isSetUp, settings, store]);
 
   useEffect(() => {
@@ -203,9 +212,45 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     }
   };
 
+  const tr = translatorFor(lang);
+  const refreshContacts = () => void store.listContacts().then(setContacts, () => undefined);
+  const family: FamilyTools = {
+    contacts,
+    onAdd: async (name, phone) => {
+      try {
+        await store.addContact({ name, phoneE164: phone });
+        refreshContacts();
+        return 'ok';
+      } catch (error) {
+        return isTaraError(error, 'CONTACT_LIMIT') ? 'limit' : 'invalid';
+      }
+    },
+    onRemove: (id) => void store.removeContact(id).then(refreshContacts, () => undefined),
+    // 03 Flow 10 step 4: opens the SMS app; she presses Send.
+    onTest: (c) => void openComposer(c.phoneE164, buildTestMessage(tr, profileName)),
+  };
+  const help: HelpTools | null =
+    isSetUp && settings !== null
+      ? {
+          contacts,
+          placeLabels: settings.placeLabelsEnabled ? settings.enabledPlaceLabels : [],
+          buildMessage: (place) => buildHelpMessage(tr, profileName, place),
+          openComposer: async (c, message) => {
+            const result = await openComposer(c.phoneE164, message);
+            // 03 Flow 11 step 6: only "help request opened" + time — no number, no place. Never from demo data.
+            if (result === 'opened' && runtime !== null && runtime.demo === null) {
+              void store.appendEvent({ ts: Date.now(), type: 'help_opened_sms', source: null, origin: 'tarha' }).catch(() => undefined);
+            }
+            return result;
+          },
+          onAddFamily: () => undefined,
+        }
+      : null;
+
   const saved: SavedSafety | null =
     isSetUp && settings !== null
       ? {
+          family,
           settings,
           onSettings: (patch) =>
             void store.updateSettings(patch).then(async () => {
@@ -292,6 +337,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           onAlertLess={(yes) => runtime.session.dispatch({ t: 'alertLessAnswer', yes })}
           onMute={(untilMono) => runtime.session.dispatch({ t: 'mute', untilMs: untilMono })}
           history={history}
+          help={help}
+          onHelpAnswer={(yes) => runtime.session.dispatch({ t: 'helpAnswer', yes })}
           homeBanner={
             isDaily ? (
               <PatternCards

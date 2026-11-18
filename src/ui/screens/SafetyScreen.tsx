@@ -1,8 +1,8 @@
 // Screen 6 — Privacy & Safety (03 Flow 6, 04 §10), also the Safety tab. Header "processed on your phone only";
 // rows: delete-after (shorter only), "No internet used ✓" (tap for why), then Delete Everything; then the
 // optional General place card. Before saving (Try mode) only the true statements are shown — there is nothing
-// to shorten or delete yet. 🟡 Family (Flow 10) and Lock (Phase 11) cards join when those features exist, so
-// no Yes button here ever promises something the build can't do (04 §12).
+// to shorten or delete yet. Family (Flow 10): on Screen 6 a 100%-optional Yes/No card, in the tab the family list.
+// 🟡 The Lock card (Phase 11) joins when App Lock exists, so no Yes button here promises something the build can't do.
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DEFAULT_SETTINGS, type Settings } from '../../shared/types';
@@ -15,11 +15,14 @@ import { IconLock, IconNoInternet } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
 import { SPACE, TOUCH_MIN } from '../theme/tokens';
 import { DeleteEverything, PlaceCard, ShorterRetention, useRetentionLabel } from './SafetySections';
+import { FamilySection, type FamilyTools } from './FamilySection';
+import { DecisionCard } from '../components/DecisionCard';
 
 export interface SavedSafety {
   settings: Settings;
   onSettings: (patch: Partial<Settings>) => void;
   onDeleteEverything: () => void;
+  family?: FamilyTools;
 }
 
 interface SafetyScreenProps {
@@ -31,6 +34,27 @@ interface SafetyScreenProps {
 }
 
 const CHECK = '✓';
+
+/** Screen 6 asks first (100% optional); the Safety tab simply shows the list. */
+function FamilyBlock({ family, isStory }: { family: FamilyTools; isStory: boolean }) {
+  const { t } = useUi();
+  const [answer, setAnswer] = useState<boolean | null>(isStory && family.contacts.length === 0 ? null : true);
+  if (answer === false) return null;
+  if (answer === null) {
+    return (
+      <DecisionCard
+        tone="neutral"
+        question={t('family.question')}
+        yesLabel={t('common.yes')}
+        noLabel={t('common.no')}
+        onYes={() => setAnswer(true)}
+        onNo={() => setAnswer(false)}
+        testID="family-optin"
+      />
+    );
+  }
+  return <FamilySection {...family} startOpen={isStory && family.contacts.length === 0} />;
+}
 const ICON_SQUARE = 48;
 
 export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
@@ -92,6 +116,7 @@ export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
         )}
       </Card>
       {saved !== null && <DeleteEverything onConfirm={saved.onDeleteEverything} />}
+      {saved?.family !== undefined && <FamilyBlock family={saved.family} isStory={isStory} />}
       {saved !== null && (
         <PlaceCard
           isEnabled={saved.settings.placeLabelsEnabled}

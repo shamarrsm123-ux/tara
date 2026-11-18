@@ -9,12 +9,28 @@ const fs = require('fs');
 const MAX_SDK_FOR_LEGACY_BLE_LOCATION = 30;
 const PERMISSION_LINE = /^uses-permission(?:-sdk-23)?:\s*name='([^']+)'(?:.*maxSdkVersion='(\d+)')?/;
 
+const IMPLIED_LINE = /^uses-implied-permission:\s*name='([^']+)'/;
+
+/** Permissions aapt only *infers* (e.g. COARSE from FINE): it prints them as a `uses-permission` line followed by a
+ *  `uses-implied-permission` line. They are not in the APK's manifest, so they aren't requested by TARA. */
+function impliedPermissions(badging) {
+  return new Set(
+    badging
+      .split('\n')
+      .map((line) => line.trim().match(IMPLIED_LINE))
+      .filter(Boolean)
+      .map(([, name]) => name),
+  );
+}
+
 function parsePermissions(badging) {
+  const implied = impliedPermissions(badging);
   return badging
     .split('\n')
     .map((line) => line.trim().match(PERMISSION_LINE))
     .filter(Boolean)
-    .map(([, name, maxSdk]) => ({ name, maxSdk: maxSdk ? Number(maxSdk) : null }));
+    .map(([, name, maxSdk]) => ({ name, maxSdk: maxSdk ? Number(maxSdk) : null }))
+    .filter((p) => !implied.has(p.name));
 }
 
 function findPermissionViolations(badging) {
@@ -44,6 +60,7 @@ function main() {
     process.exit(2);
   }
   const violations = findPermissionViolations(input);
+  impliedPermissions(input).forEach((name) => console.log(`  (implied by aapt, not declared: ${name})`));
   console.log('Release APK permissions:');
   permissions.forEach((p) => console.log(`  ${p.name}${p.maxSdk ? ` (maxSdk ${p.maxSdk})` : ''}`));
   if (violations.length > 0) {
@@ -55,4 +72,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { main, parsePermissions, findPermissionViolations };
+module.exports = { main, parsePermissions, findPermissionViolations, impliedPermissions };

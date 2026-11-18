@@ -46,3 +46,20 @@ describe('findPermissionViolations', () => {
     expect(findPermissionViolations(tooHigh)).toHaveLength(1);
   });
 });
+
+describe('aapt-implied permissions', () => {
+  test('a permission aapt only infers (COARSE from FINE) is not counted as declared', () => {
+    const out = badging(
+      "uses-permission: name='android.permission.ACCESS_FINE_LOCATION' maxSdkVersion='30'",
+      "uses-permission: name='android.permission.ACCESS_COARSE_LOCATION'",
+      "uses-implied-permission: name='android.permission.ACCESS_COARSE_LOCATION' reason='requested android.permission.ACCESS_FINE_LOCATION'",
+    );
+    expect(findPermissionViolations(out)).toEqual([]);
+  });
+
+  test('a really declared COARSE (no implied line) still fails (P7)', () => {
+    const out = badging("uses-permission: name='android.permission.ACCESS_COARSE_LOCATION'");
+    expect(findPermissionViolations(out)).toHaveLength(1);
+  });
+});
+

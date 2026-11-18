@@ -12,6 +12,7 @@ import { SPACE } from '../theme/tokens';
 import { HomeScreen, isCoolingActive } from './HomeScreen';
 import { MyDaysScreen, type SavedHistory } from './MyDaysScreen';
 import { SafetyScreen, type SavedSafety } from './SafetyScreen';
+import { HelpFlow, type HelpTools } from './HelpFlow';
 
 export interface MainActions {
   onCool: (on: boolean) => void;
@@ -26,6 +27,9 @@ export interface MainActions {
   onMute?: (untilMono: number | null) => void;
   /** Cards above the Home meter (smart reminders). */
   homeBanner?: ReactNode;
+  /** Help request tools once she has saved; null in Try mode. */
+  help?: HelpTools | null;
+  onHelpAnswer?: (yes: boolean) => void;
 }
 
 interface MainShellProps extends MainActions {
@@ -49,7 +53,8 @@ function Overlay({ children, demo }: { children: ReactNode; demo: { isSpedUp: bo
   );
 }
 
-export function MainShell({ snapshot, demo, saved, history = null, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack, onContinue, onMute, homeBanner }: MainShellProps) {
+export function MainShell({ snapshot, demo, saved, history = null, onCool, onExtend, onPromptAnswer, onPromptDismiss, onAlertLess, onBack, onContinue, onMute, homeBanner, help = null, onHelpAnswer }: MainShellProps) {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [tab, setTab] = useState<MainTab>('home');
   const e = snapshot.engine;
   const startCooling = () => {
@@ -64,7 +69,7 @@ export function MainShell({ snapshot, demo, saved, history = null, onCool, onExt
   return (
     <View style={styles.fill}>
       <View style={styles.fill}>
-        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} onContinue={onContinue} onMute={onMute} banner={homeBanner} />}
+        {tab === 'home' && <HomeScreen snapshot={snapshot} demo={demo} onCool={onCool} onExtend={onExtend} onBack={onBack} onContinue={onContinue} onMute={onMute} banner={homeBanner} onHelp={help !== null ? () => setIsHelpOpen(true) : undefined} />}
         {tab === 'myDays' && <MyDaysScreen snapshot={snapshot} demo={demo} history={history} />}
         {tab === 'safety' && <SafetyScreen demo={demo} saved={saved} />}
       </View>
@@ -72,6 +77,26 @@ export function MainShell({ snapshot, demo, saved, history = null, onCool, onExt
       {e.isPromptShowing ? (
         <Overlay demo={demo}>
           <PromptCard blockReason={e.coolBlockReason} onAnswer={answerPrompt} onDismiss={onPromptDismiss} />
+        </Overlay>
+      ) : help !== null && (isHelpOpen || e.isHelpAsking) ? (
+        <Overlay demo={demo}>
+          <HelpFlow
+            {...help}
+            onAddFamily={() => {
+              setIsHelpOpen(false);
+              if (e.isHelpAsking) onHelpAnswer?.(false);
+              setTab('safety');
+            }}
+            onQuestionAnswer={
+              e.isHelpAsking
+                ? (yes) => {
+                    if (yes) setIsHelpOpen(true); // keep going after the engine stops asking
+                    onHelpAnswer?.(yes);
+                  }
+                : undefined
+            }
+            onClose={() => setIsHelpOpen(false)}
+          />
         </Overlay>
       ) : (
         e.isAskingAlertLess && (

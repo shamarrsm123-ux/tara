@@ -56,6 +56,7 @@ jobs:
           BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
           APK=android/app/build/outputs/apk/release/app-release.apk
           "$BT/aapt2" dump badging "$APK" > badging.txt
+          grep -E "uses-(implied-)?permission" badging.txt
           npm run privacy:apk -- badging.txt
       - uses: actions/upload-artifact@v4
         with:
