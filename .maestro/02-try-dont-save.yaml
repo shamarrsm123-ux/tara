@@ -1,0 +1,28 @@
+# 12 §6 flow 2 — Try → Don't save: Save → No → "Nothing was saved." → Language; a relaunch lands on Language.
+appId: org.tara.app
+---
+- launchApp:
+    clearState: true
+- tapOn: { id: "lang-en" }
+- tapOn: { id: "language-continue" }
+- tapOn: { id: "welcome-try" }
+- tapOn: { id: "connect-button" }
+- tapOn: { id: "connect-allow", optional: true }
+- extendedWaitUntil: { visible: { id: "connect-demo" }, timeout: 20000 }
+- tapOn: { id: "connect-demo" }
+- extendedWaitUntil: { visible: { id: "connect-next", enabled: true }, timeout: 15000 }
+- tapOn: { id: "connect-next" }
+- tapOn: { id: "calibrate-skip" }
+- extendedWaitUntil: { visible: { id: "prompt" }, timeout: 30000 }
+- tapOn: { id: "prompt-no" }
+- scrollUntilVisible: { element: { id: "home-continue" }, direction: DOWN }
+- tapOn: { id: "home-continue" }
+- tapOn: { id: "example-no" }
+- tapOn: { id: "example-next" }
+- tapOn: { id: "save-no" }
+- assertVisible: "Okay. Nothing was saved."
+- tapOn: { id: "notice-ok" }
+- assertVisible: { id: "screen-language" }
+- stopApp
+- launchApp
+- assertVisible: { id: "screen-language" }

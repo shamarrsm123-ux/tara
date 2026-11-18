@@ -1,0 +1,14 @@
+# 12 §6 flow 7 — Delete Everything: hold 3 s → "Everything is deleted." → Language; a relaunch is a fresh install.
+appId: org.tara.app
+---
+- runFlow: 01-try-save.yaml
+- tapOn: { id: "tab-safety" }
+- scrollUntilVisible: { element: { id: "delete-everything" }, direction: DOWN }
+- tapOn: { id: "delete-everything" }
+- longPressOn: { id: "delete-hold" }
+- extendedWaitUntil: { visible: "Everything is deleted.", timeout: 10000 }
+- tapOn: { id: "notice-ok" }
+- assertVisible: { id: "screen-language" }
+- stopApp
+- launchApp
+- assertVisible: { id: "screen-language" }

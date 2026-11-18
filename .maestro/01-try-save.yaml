@@ -1,0 +1,32 @@
+# 12 §6 flow 1 — Try → Save: Language → Welcome → Connect (demo) → Calibrate → Home → prompt Yes → Calm rises →
+# example → Save Yes → name skip → age 26–35 → Privacy → Done → Daily Home.
+appId: org.tara.app
+---
+- launchApp:
+    clearState: true
+- tapOn: { id: "lang-en" }
+- tapOn: { id: "language-continue" }
+- tapOn: { id: "welcome-try" }
+- tapOn: { id: "connect-button" }
+- tapOn: { id: "connect-allow", optional: true }
+- extendedWaitUntil: { visible: { id: "connect-demo" }, timeout: 20000 }
+- tapOn: { id: "connect-demo" }
+- assertVisible: "DEMO — not real brain data"
+- extendedWaitUntil: { visible: { id: "connect-next", enabled: true }, timeout: 15000 }
+- tapOn: { id: "connect-next" }
+- tapOn: { id: "calibrate-skip" }
+- extendedWaitUntil: { visible: { id: "prompt" }, timeout: 30000 }
+- tapOn: { id: "prompt-yes" }
+- assertVisible: { id: "cooling-card" }
+- extendedWaitUntil: { visible: "Calm", timeout: 30000 }
+- scrollUntilVisible: { element: { id: "home-continue" }, direction: DOWN }
+- tapOn: { id: "home-continue" }
+- tapOn: { id: "example-yes" }
+- tapOn: { id: "example-next" }
+- tapOn: { id: "save-yes" }
+- tapOn: { id: "save-name-skip" }
+- tapOn: { id: "save-age-26_35" }
+- assertVisible: { id: "screen-privacy" }
+- tapOn: { id: "family-optin-no", optional: true }
+- tapOn: { id: "privacy-done" }
+- assertVisible: { id: "tab-bar" }

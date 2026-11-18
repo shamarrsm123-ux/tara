@@ -1,0 +1,15 @@
+# 12 §6 flow 4 — Reminder: Daily mode → About ×5 → Demo "Bad 2 PM week" → pattern card (in memory only, DEMO).
+appId: org.tara.app
+---
+- runFlow: 01-try-save.yaml
+- tapOn: { id: "tab-safety" }
+- scrollUntilVisible: { element: { id: "about-version" }, direction: DOWN }
+- repeat:
+    times: 5
+    commands:
+      - tapOn: { id: "about-version" }
+- tapOn: { id: "demo-start-badTwoPmWeek" }
+- tapOn: { id: "tab-home" }
+- assertVisible: "DEMO — not real brain data"
+- scrollUntilVisible: { element: { id: "pattern-offer" }, direction: DOWN }
+- assertVisible: "You often feel stressed around.*"

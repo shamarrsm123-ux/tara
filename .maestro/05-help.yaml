@@ -1,0 +1,24 @@
+# 12 §6 flow 5 — Help: add a contact → Help → Yes → place "In the field" → exact preview → SMS app opens with it.
+# (Engine-initiated help needs 10 min of very high stress; that path is covered by Jest.)
+appId: org.tara.app
+---
+- runFlow: 01-try-save.yaml
+- tapOn: { id: "tab-safety" }
+- scrollUntilVisible: { element: { id: "family-add" }, direction: DOWN }
+- tapOn: { id: "family-add" }
+- tapOn: { id: "family-name" }
+- inputText: "Mama"
+- tapOn: { id: "family-phone" }
+- inputText: "201001234567"
+- tapOn: { id: "family-save" }
+- scrollUntilVisible: { element: { id: "place-yes" }, direction: DOWN }
+- tapOn: { id: "place-yes" }
+- tapOn: { id: "tab-home" }
+- tapOn: { id: "help-button" }
+- tapOn: { id: "help-yes" }
+- tapOn: { id: "help-place-in_field" }
+- assertVisible: "Your family member needs help. Place: In the field. — sent from TARA"
+- tapOn: { id: "help-send" }
+# The phone's SMS app is now in front with the text filled in; she would press Send there.
+- back
+- assertVisible: "Did your message send?"

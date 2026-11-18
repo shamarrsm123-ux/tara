@@ -1,0 +1,16 @@
+# 12 §6 flow 6 — Battery: Demo "Low battery" → the 20 % card, then the 10 % card; Cool is disabled at 10 %.
+appId: org.tara.app
+---
+- runFlow: 01-try-save.yaml
+- tapOn: { id: "tab-safety" }
+- scrollUntilVisible: { element: { id: "about-version" }, direction: DOWN }
+- repeat:
+    times: 5
+    commands:
+      - tapOn: { id: "about-version" }
+- tapOn: { id: "demo-start-lowBattery" }
+- tapOn: { id: "tab-home" }
+- extendedWaitUntil: { visible: "Battery low. Cooling will stop soon. Please find shade.", timeout: 30000 }
+- tapOn: { id: "battery-alert-ok" }
+- extendedWaitUntil: { visible: "Battery very low. Cooling is off. Find shade and drink water.", timeout: 30000 }
+- assertVisible: { id: "home-cool", enabled: false }
