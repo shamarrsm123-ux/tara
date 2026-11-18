@@ -13,6 +13,7 @@ import { Segmented } from '../components/Segmented';
 import { Card } from '../components/Surface';
 import { useUi } from '../theme/UiProvider';
 import { SPACE } from '../theme/tokens';
+import { CycleSection, type CycleSettingsTools } from './CycleSection';
 
 /** Shown in About; 5 taps open Demo mode (03 Flow 18). */
 const APP_VERSION = '0.1.0';
@@ -37,6 +38,8 @@ export interface SettingsTools {
   onReminderOff: (slotStartMin: number) => void;
   /** Flow 18: hidden behind 5 taps on the version number in About. */
   demo?: DemoTools;
+  /** Flow 19: PMDD-aware cooling. */
+  cycle?: CycleSettingsTools;
 }
 
 interface SettingsSectionProps extends SettingsTools {
@@ -44,7 +47,7 @@ interface SettingsSectionProps extends SettingsTools {
   onSettings: (patch: Partial<Settings>) => void;
 }
 
-export function SettingsSection({ settings, onSettings, lang, onLanguage, onRecalibrate, reminders, onReminderOff, demo }: SettingsSectionProps) {
+export function SettingsSection({ settings, onSettings, lang, onLanguage, onRecalibrate, reminders, onReminderOff, demo, cycle }: SettingsSectionProps) {
   const { t } = useUi();
   const [versionTaps, setVersionTaps] = useState(0);
   const isDemoOpen = demo !== undefined && (demo.isActive || versionTaps >= DEMO_TAPS);
@@ -96,6 +99,7 @@ export function SettingsSection({ settings, onSettings, lang, onLanguage, onReca
         />
         <Button label={t('settings.recalibrate')} variant="outlined" tone="neutral" onPress={onRecalibrate} testID="set-recalibrate" />
       </Card>
+      {cycle !== undefined && <CycleSection settings={settings} onSettings={onSettings} {...cycle} />}
       <Card testID="settings-reminders">
         <AppText variant="body" isBold>
           {t('settings.reminders')}

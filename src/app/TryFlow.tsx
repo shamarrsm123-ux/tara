@@ -49,6 +49,8 @@ import { PatternCards } from '../ui/components/PatternCards';
 import { createNotifier } from '../notify/createNotifier';
 import { canGoBack, reduceTry, type TryState } from './tryNavigation';
 import { usePersistence } from './usePersistence';
+import { useCycle } from './useCycle';
+import { CheckInCard, CycleHomeCard } from '../ui/components/CycleCards';
 
 interface TryFlowProps {
   store: Store;
@@ -100,6 +102,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   const appLock = useAppLock(store, settings, setSettings, translatorFor(lang)('lock.prompt'));
   const history = useDailyServices(store, notifier, runtime?.session ?? null, isDaily);
   const reminders = useReminders(store, notifier, isDaily, snapshot?.nowMs ?? 0);
+  const cycle = useCycle(store, settings, runtime?.session ?? null, isDaily, snapshot?.nowMs ?? 0);
   useEffect(() => {
     notifierRef.current = isDaily ? notifier : null;
   }, [notifier, isDaily]);
@@ -341,6 +344,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
             })),
             onReminderOff: reminders.turnOff,
             demo: { isActive: isDemoActive, onStart: (id) => void startDemoScenario(id), onExit: exitDemo },
+            cycle: { status: cycle.status, onCorrect: cycle.correctPhase, onForget: cycle.forget },
           },
         }
       : null;
@@ -434,7 +438,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           onPromptDismiss={() => runtime.session.dispatch({ t: 'promptDismiss' })}
           onAlertLess={(yes) => runtime.session.dispatch({ t: 'alertLessAnswer', yes })}
           onMute={(untilMono) => runtime.session.dispatch({ t: 'mute', untilMs: untilMono })}
-          history={isDemoActive ? null : history}
+          history={isDemoActive || history === null ? null : { ...history, cycle: cycle.isOn ? { phaseOn: cycle.phaseOn, checkIns: cycle.checkIns } : null }}
           help={help}
           onHelpAnswer={(yes) => runtime.session.dispatch({ t: 'helpAnswer', yes })}
           homeBanner={
@@ -448,6 +452,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
                     <Button label={t('common.ok')} variant="outlined" tone="neutral" onPress={() => setBatteryAlert(null)} testID="battery-alert-ok" />
                   </Card>
                 )}
+                {cycle.status !== null && <CycleHomeCard status={cycle.status} onLogDay1={cycle.logDay1} />}
+                {cycle.isCheckInDue && <CheckInCard onSave={cycle.saveCheckIn} onLater={cycle.postponeCheckIn} />}
                 <PatternCards
                   offerSlot={isDemoActive ? demoOfferSlot : reminders.offerSlot}
                   dueSlot={isDemoActive ? null : reminders.dueSlot}

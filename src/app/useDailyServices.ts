@@ -51,8 +51,14 @@ export function useDailyServices(store: Store, notifier: Notifier | null, sessio
       if (level >= 0) session.dispatch({ t: 'phoneBattery', pct: Math.round(level * PERCENT) });
     };
     void Battery.getBatteryLevelAsync().then(report, () => undefined);
-    const sub = Battery.addBatteryLevelListener(({ batteryLevel }) => report(batteryLevel));
-    return () => sub.remove();
+    // Some platforms (the web preview) have no battery events: then the phone-battery alert simply doesn't run.
+    let sub: { remove: () => void } | null = null;
+    try {
+      sub = Battery.addBatteryLevelListener(({ batteryLevel }) => report(batteryLevel));
+    } catch {
+      sub = null;
+    }
+    return () => sub?.remove();
   }, [session, isActive]);
 
   return isActive ? history : null;

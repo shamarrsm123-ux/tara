@@ -5,19 +5,28 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { addDays, coolingBandsFromMinutes, dayStartOf, pointsFromMinutes, summarizeDays, type DaySummary, type MinuteLike } from '../../engine/history';
+import type { CyclePhase } from '../../engine/cycle';
 import { GRAPH_WINDOW_MS, type MonitorSnapshot } from '../../engine/session';
+import { CHECKIN_ITEMS, type CheckInRow } from '../../shared/storePort';
 import { DEFAULT_SETTINGS } from '../../shared/types';
 import { formatDayParts, formatNumber } from '../i18n/format';
 import { AppText } from '../components/AppText';
 import { LiveGraph } from '../components/LiveGraph';
 import { ScreenFrame } from '../components/ScreenFrame';
-import { Card } from '../components/Surface';
+import { Card, Tag } from '../components/Surface';
 import { useUi } from '../theme/UiProvider';
 import { RADIUS, SPACE } from '../theme/tokens';
 
 export interface SavedHistory {
   minutes: readonly MinuteLike[];
   retentionDays: number;
+  /** PMDD-aware cooling on: each day's phase and check-in (03 Flow 14 + 19–20). */
+  cycle?: DayCycleInfo | null;
+}
+
+export interface DayCycleInfo {
+  phaseOn: (dayMs: number) => CyclePhase | null;
+  checkIns: readonly CheckInRow[];
 }
 
 interface MyDaysScreenProps {
@@ -111,7 +120,31 @@ function SavedDays({ snapshot, history }: { snapshot: MonitorSnapshot; history: 
           testID="my-days-graph"
         />
       </Card>
+      {history.cycle != null && <DayCycleCard dayMs={dayStart} cycle={history.cycle} />}
     </>
+  );
+}
+
+/** The selected day's menstrual phase and check-in answers. */
+function DayCycleCard({ dayMs, cycle }: { dayMs: number; cycle: DayCycleInfo }) {
+  const { t, palette } = useUi();
+  const phase = cycle.phaseOn(dayMs);
+  const checkIn = cycle.checkIns.find((c) => c.dayMs === dayMs);
+  return (
+    <Card tint="peach" testID="my-days-cycle">
+      {phase !== null && <Tag label={t(`cycle.phase.${phase}`)} color={palette.accent} testID="my-days-phase" />}
+      {checkIn === undefined ? (
+        <AppText variant="body" color="textMuted">
+          {t('checkIn.none')}
+        </AppText>
+      ) : (
+        CHECKIN_ITEMS.map((item) => (
+          <AppText key={item} variant="body" testID={`my-days-check-in-${item}`}>
+            {`${t(`checkIn.${item}`)}: ${t(`checkIn.level${checkIn[item]}`)}`}
+          </AppText>
+        ))
+      )}
+    </Card>
   );
 }
 
