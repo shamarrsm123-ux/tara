@@ -142,6 +142,12 @@ export const VOICE_LINE_IDS = [
   'reminderNow',
   'cycleHeadsUp',
   'checkInQuestion',
+  'introCool',
+  'introCalm',
+  'introPrivate',
+  'keepQuestion',
+  'cycleQuestion',
+  'familyQuestion',
 ] as const;
 export type VoiceLineId = (typeof VOICE_LINE_IDS)[number];
 

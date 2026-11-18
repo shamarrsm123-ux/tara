@@ -1,0 +1,18 @@
+# 12 §6 flow 3 — the 30-second MVP demo (03 Flow O2 "See a 30-second demo", Flow 3): Calm drops, the High-stress
+# prompt, Yes → cooling, Calm returns; Continue goes back to Meet TARA. Everything labeled DEMO, nothing saved.
+appId: org.tara.app
+---
+- launchApp:
+    clearState: true
+- tapOn: { id: "lang-en" }
+- tapOn: { id: "language-continue" }
+- tapOn: { id: "intro-demo" }
+- assertVisible: "DEMO — not real brain data"
+- extendedWaitUntil: { visible: { id: "prompt" }, timeout: 30000 }
+- tapOn: { id: "prompt-yes" }
+- assertVisible: { id: "cooling-card" }
+- extendedWaitUntil: { visible: "Calm", timeout: 30000 }
+- tapOn: { id: "cooling-stop" }
+- scrollUntilVisible: { element: { id: "home-continue" }, direction: DOWN }
+- tapOn: { id: "home-continue" }
+- assertVisible: { id: "screen-intro" }

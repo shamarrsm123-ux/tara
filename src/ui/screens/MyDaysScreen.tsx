@@ -152,7 +152,7 @@ export function MyDaysScreen({ snapshot, demo, history = null }: MyDaysScreenPro
   const { t, lang } = useUi();
   const retention = history?.retentionDays ?? DEFAULT_SETTINGS.retentionDays;
   return (
-    <ScreenFrame testID="screen-my-days" title={t('tabs.myDays')} demo={demo}>
+    <ScreenFrame testID="screen-my-days" title={t('tabs.myDays')} demo={demo} backdrop="warm">
       {history !== null ? (
         <SavedDays snapshot={snapshot} history={history} />
       ) : (

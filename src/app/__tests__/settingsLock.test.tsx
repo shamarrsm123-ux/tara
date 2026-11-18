@@ -8,6 +8,7 @@ import { translatorFor } from '../../ui/i18n';
 import { initialStateFor } from '../launch';
 import { TryFlow } from '../TryFlow';
 import { INITIAL_TRY, reduceTry, setUpState } from '../tryNavigation';
+import { onboardToDaily } from './onboard';
 
 jest.setTimeout(60_000);
 const t = translatorFor('en');
@@ -20,32 +21,11 @@ async function seconds(n: number) {
   }
 }
 
-/** The whole Try story to Daily mode with the demo tarha. */
+/** The whole first run to Daily mode with the demo tarha (03 Flows O1–O6). */
 async function storyToDaily() {
   const store = createMemoryStore(() => Date.now());
   const view = await render(<TryFlow store={store} initial={INITIAL_TRY} />);
-  for (const id of ['lang-en', 'language-continue', 'welcome-try', 'connect-button']) await press(id);
-  await seconds(1);
-  await press('connect-demo');
-  await seconds(6);
-  await press('connect-next');
-  await press('calibrate-skip');
-  await seconds(11);
-  await press('prompt-yes');
-  await seconds(1);
-  await press('cooling-stop');
-  await seconds(1);
-  await press('home-continue');
-  await press('example-no');
-  await press('example-next');
-  await press('save-yes');
-  await seconds(1);
-  await press('save-name-skip');
-  await seconds(1);
-  await press('save-age-skip');
-  await seconds(1);
-  await press('privacy-done');
-  await seconds(1);
+  await onboardToDaily();
   return { store, view };
 }
 

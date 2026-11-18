@@ -36,7 +36,7 @@ async function seconds(n: number, perSecond?: () => void) {
 
 async function toConnect() {
   await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
-  for (const id of ['lang-en', 'language-continue', 'welcome-try', 'connect-button']) await press(id);
+  for (const id of ['lang-en', 'language-continue', 'intro-next', 'intro-next', 'intro-start', 'connect-button']) await press(id);
 }
 
 // Full-UI flows drive fake time through many renders; give them room under a loaded coverage run.
@@ -67,7 +67,7 @@ describe('Flow 1 with a real tarha (13 Phase 7)', () => {
       { id: 'AA:01', name: 'TARA-3F2A' },
       { id: 'AA:02', name: 'TARA-77C1' },
     ];
-    for (const id of ['lang-en', 'language-continue', 'welcome-try', 'connect-button', 'connect-allow']) await press(id);
+    for (const id of ['lang-en', 'language-continue', 'intro-next', 'intro-next', 'intro-start', 'connect-button', 'connect-allow']) await press(id);
     await seconds(1);
     expect(screen.getByText(t('connect.choose'))).toBeTruthy();
     await press('connect-blink-AA:02');

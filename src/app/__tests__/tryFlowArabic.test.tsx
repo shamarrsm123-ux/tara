@@ -47,11 +47,14 @@ describe('Try flow in Arabic (13 Phase 4)', () => {
 
     await tap('lang-ar_EG');
     await tap('language-continue');
-    expect(screen.getByTestId('screen-welcome')).toBeTruthy();
-    expect(screen.getByText(t('welcome.try'))).toBeTruthy();
+    expect(screen.getByTestId('screen-intro')).toBeTruthy();
+    expect(screen.getByText(t('intro.coolTitle'))).toBeTruthy();
     expect(visibleEnglish()).toEqual([]);
 
-    await tap('welcome-try');
+    await tap('intro-next');
+    await tap('intro-next');
+    expect(visibleEnglish()).toEqual([]);
+    await tap('intro-start');
     await tap('connect-button');
     expect(screen.getByTestId('connect-not-found')).toHaveTextContent(t('connect.notFound'));
     expect(visibleEnglish()).toEqual([]);
@@ -66,39 +69,38 @@ describe('Try flow in Arabic (13 Phase 4)', () => {
     await seconds(60);
     expect(screen.getByTestId('calibrate-message')).toHaveTextContent(t('calibrate.done'));
     await seconds(3);
-    expect(screen.getByTestId('screen-home')).toBeTruthy();
-
-    const first = screen.getByTestId('home-meter-value').props.children;
-    await seconds(4);
-    const later = screen.getByTestId('home-meter-value').props.children;
-    expect(later).not.toEqual(first);
-    // Live, not "—": an Arabic-digit number and a zone word (the Story is already heading down by now).
-    expect(screen.getByTestId('home-meter-value')).toHaveTextContent(/[٠-٩]/);
+    // Keep TARA on this phone? shows her live Calm meter (03 Flow O5).
+    expect(screen.getByTestId('screen-save')).toBeTruthy();
+    // Live, not "—": an Arabic-digit number and a zone word.
+    expect(screen.getByTestId('save-meter-value')).toHaveTextContent(/[٠-٩]/);
     const zoneWords = [t('zone.calm'), t('zone.rising'), t('zone.high')];
     expect(zoneWords.some((w) => screen.queryByText(w) !== null)).toBe(true);
-    expect(screen.getByText(t('demo.spedUp'))).toBeTruthy();
     expect(visibleEnglish()).toEqual([]);
     expect(elapsedS).toBeLessThan(120);
   });
 
-  test('Skip uses the default baseline and goes straight to Home', async () => {
+  test('Skip uses the default baseline and goes straight to Keep TARA', async () => {
     await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
     await tap('lang-ar_EG');
     await tap('language-continue');
-    await tap('welcome-try');
+    await tap('intro-next');
+    await tap('intro-next');
+    await tap('intro-start');
     await tap('connect-button');
     await tap('connect-demo');
     await seconds(4);
     await tap('connect-next');
     await tap('calibrate-skip');
-    expect(screen.getByTestId('screen-home')).toBeTruthy();
+    expect(screen.getByTestId('screen-save')).toBeTruthy();
   });
 
   test('Next stays disabled until 5 s of Good fit; back returns to the previous screen', async () => {
     await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
     await tap('lang-en');
     await tap('language-continue');
-    await tap('welcome-try');
+    await tap('intro-next');
+    await tap('intro-next');
+    await tap('intro-start');
     await tap('connect-button');
     await fireEvent.press(screen.getByTestId('connect-demo'));
     await seconds(2);
@@ -106,6 +108,6 @@ describe('Try flow in Arabic (13 Phase 4)', () => {
     await seconds(4);
     expect(screen.getByTestId('connect-next').props.accessibilityState).toMatchObject({ disabled: false });
     await tap('back');
-    expect(screen.getByTestId('screen-welcome')).toBeTruthy();
+    expect(screen.getByTestId('screen-intro')).toBeTruthy();
   });
 });

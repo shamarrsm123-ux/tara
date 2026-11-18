@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { translatorFor } from '../../ui/i18n';
 import { AlertLessCard, PromptCard } from '../../ui/components/ActionCards';
@@ -6,18 +6,12 @@ import { UiProvider } from '../../ui/theme/UiProvider';
 import { createMemoryStore } from '../../store/memoryStore';
 import { TryFlow } from '../TryFlow';
 import { INITIAL_TRY } from '../tryNavigation';
+import { press, seconds, toStory } from './onboard';
 
 const t = translatorFor('en');
 // Simulating 15+ minutes of fake time through the full UI takes a few real seconds.
 jest.setTimeout(30_000);
 
-async function seconds(n: number) {
-  for (let i = 0; i < n; i += 1) {
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-    });
-  }
-}
 async function minutes(n: number) {
   for (let i = 0; i < n; i += 1) {
     await act(async () => {
@@ -25,21 +19,11 @@ async function minutes(n: number) {
     });
   }
 }
-const press = (id: string) => fireEvent.press(screen.getByTestId(id));
 
-/** Language → Welcome → Connect (demo) → Skip calibration → Home, with the Story scripted from Home. */
+/** Language → Meet TARA → "See a 30-second demo": the Story runs on the demo tarha (03 Flow O2). */
 async function toHome() {
   await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
-  await press('lang-en');
-  await press('language-continue');
-  await press('welcome-try');
-  await press('connect-button');
-  await seconds(1);
-  await press('connect-demo');
-  await seconds(6);
-  await press('connect-next');
-  await press('calibrate-skip');
-  await seconds(1);
+  await toStory();
 }
 
 describe('Screen 3 — the MVP (13 Phase 5)', () => {
@@ -86,6 +70,12 @@ describe('Screen 3 — the MVP (13 Phase 5)', () => {
     expect(screen.queryByTestId('cooling-card')).toBeNull();
     expect(screen.getByTestId('home-cool')).toBeTruthy();
     expect(screen.getByTestId('back')).toBeTruthy();
+
+    // After the cooling scene, Continue ends the demo and returns to Meet TARA (03 Flow O2).
+    await press('home-continue');
+    await seconds(1);
+    expect(screen.getByTestId('screen-intro')).toBeTruthy();
+    expect(screen.queryByText(t('demo.ribbon'))).toBeNull();
   });
 
   test('manual cooling starts immediately and can be extended once by 10 minutes', async () => {

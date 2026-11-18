@@ -18,14 +18,13 @@ import type { Settings, NotifyKind } from '../shared/types';
 import { playHaptic } from '../ui/haptics';
 import { CalibrateScreen } from '../ui/screens/CalibrateScreen';
 import { ConnectScreen } from '../ui/screens/ConnectScreen';
-import { ExampleScreen } from '../ui/screens/ExampleScreen';
 import { isCoolingActive } from '../ui/screens/HomeScreen';
 import { LanguageScreen } from '../ui/screens/LanguageScreen';
 import { MainShell } from '../ui/screens/MainShell';
 import { NoticeScreen } from '../ui/screens/NoticeScreen';
-import { SafetyScreen, type SavedSafety } from '../ui/screens/SafetyScreen';
-import { SaveScreen } from '../ui/screens/SaveScreen';
-import { WelcomeScreen } from '../ui/screens/WelcomeScreen';
+import type { SavedSafety } from '../ui/screens/SafetyScreen';
+import { IntroScreen, KeepScreen } from '../ui/screens/Onboarding';
+import { AgeStep, CycleStep, FamilyStep, NameStep, RemindersStep, type CycleAnswer } from '../ui/screens/Setup';
 import { UiProvider } from '../ui/theme/UiProvider';
 import { CALIBRATION_DONE_PAUSE_MS } from '../ui/theme/tokens';
 import { translatorFor } from '../ui/i18n';
@@ -50,6 +49,7 @@ import { createNotifier } from '../notify/createNotifier';
 import { canGoBack, reduceTry, type TryState } from './tryNavigation';
 import { usePersistence } from './usePersistence';
 import { useCycle } from './useCycle';
+import { daysBefore } from '../engine/cycle';
 import { CheckInCard, CycleHomeCard } from '../ui/components/CycleCards';
 
 interface TryFlowProps {
@@ -82,7 +82,6 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   const [profileName, setProfileName] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [hasStoryAction, setHasStoryAction] = useState(false);
-  const hasStartedScenario = useRef(false);
   const lang = state.lang ?? 'en';
   const isSetUp = state.lifecycle === 'setUp';
   const isRealTarha = runtime !== null && runtime.demo === null;
@@ -200,12 +199,15 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     return () => clearTimeout(id);
   }, [isCalibrated]);
 
-  // The demo's scripted part (Story) begins on Home (07 §8).
+  // Back on Meet TARA (from the 30-second demo, by any way back): the demo tarha is dropped (03 Flow O2).
   useEffect(() => {
-    if (state.screen === 'home' && runtime?.demo != null && !hasStartedScenario.current) {
-      hasStartedScenario.current = true;
-      runtime.demo.startScenario();
-    }
+    if (state.screen !== 'intro' || runtime === null) return undefined;
+    const id = setTimeout(() => {
+      void discardRuntime(runtime);
+      setRuntime(null);
+      setHasStoryAction(false);
+    }, 0);
+    return () => clearTimeout(id);
   }, [state.screen, runtime]);
 
   const connectFlow = useConnect(bluetooth, async (tarha) => {
@@ -238,8 +240,23 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     connectFlow.setPhase('idle');
     pairedRef.current = null;
     setHasStoryAction(false);
-    hasStartedScenario.current = false;
     dispatch({ type: 'reset' });
+  };
+
+  /** "See a 30-second demo" (03 Flow O2): the Story scenario on the demo tarha — labeled DEMO, nothing saved. */
+  const startStory = async () => {
+    const next = createDemoRuntime(DEFAULT_BASELINE, (a) => onActionRef.current(a));
+    setRuntime(next);
+    dispatch({ type: 'watchDemo' });
+    await next.session.connect(DEMO_TARHA.id);
+    next.demo?.startScenario();
+  };
+
+  /** Setup step 3 (03 Flow O6): PMDD-aware cooling on, her usual length, and day 1 if she knows it. */
+  const saveCycle = async ({ daysAgo, lengthDays }: CycleAnswer) => {
+    await store.updateSettings({ cycleAware: true, cycleLengthDays: lengthDays });
+    if (daysAgo !== null) await store.addCycleStart({ dayMs: daysBefore(Date.now(), daysAgo), isEstimated: false });
+    setSettings(await store.getSettings());
   };
 
   /** Flow 13 step 3, in 05 §4 order: stop cooling, forget the tarha, cancel every notification and reminder, then the store wipe. */
@@ -351,7 +368,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
 
   const back = () => dispatch({ type: 'back' });
   const demo = runtime?.demo != null ? { isSpedUp: runtime.demo.scenario.isSpedUp } : null;
-  const isStoryReady = state.lifecycle === 'trying' && hasStoryAction && snapshot !== null && !snapshot.engine.isPromptShowing;
+  const isStoryReady = state.screen === 'story' && hasStoryAction && snapshot !== null && !snapshot.engine.isPromptShowing;
+  const setupNext = () => dispatch({ type: 'setupNext' });
   const t = translatorFor(lang);
 
   // App Lock: nothing of hers is drawn until she unlocks; before settings load, draw nothing at all (no flash).
@@ -393,7 +411,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           onContinue={() => dispatch({ type: 'continue' })}
         />
       )}
-      {state.screen === 'welcome' && <WelcomeScreen onTry={() => dispatch({ type: 'tryToCalm' })} onBack={back} />}
+      {state.screen === 'intro' && <IntroScreen onGetStarted={() => dispatch({ type: 'getStarted' })} onDemo={() => void startStory()} onBack={back} />}
       {state.screen === 'connect' && (
         <ConnectScreen
           phase={connectFlow.phase}
@@ -421,7 +439,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           onBack={back}
         />
       )}
-      {(state.screen === 'home' || state.screen === 'daily') && snapshot !== null && runtime !== null && (
+      {(state.screen === 'home' || state.screen === 'daily' || state.screen === 'story') && snapshot !== null && runtime !== null && (
         <MainShell
           snapshot={snapshot}
           demo={demo}
@@ -442,8 +460,19 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           help={help}
           onHelpAnswer={(yes) => runtime.session.dispatch({ t: 'helpAnswer', yes })}
           homeBanner={
-            isDaily ? (
+            state.screen === 'home' ? (
+              <Card tint="peach" testID="try-keep">
+                <AppText variant="body">{t('keep.tryCard')}</AppText>
+                <Button label={t('keep.tryKeep')} onPress={() => dispatch({ type: 'askSave' })} testID="try-keep-button" />
+              </Card>
+            ) : isDaily ? (
               <>
+                {state.isFirstDaily && (
+                  <Card tint="lemon" testID="first-tip">
+                    <AppText variant="body">{t('setup.tip')}</AppText>
+                    <Button label={t('setup.tipOk')} variant="outlined" tone="neutral" onPress={() => dispatch({ type: 'tipSeen' })} testID="first-tip-ok" />
+                  </Card>
+                )}
                 {batteryAlert !== null && (
                   <Card tint="apricot" testID="battery-alert">
                     <AppText variant="body" isBold>
@@ -453,7 +482,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
                   </Card>
                 )}
                 {cycle.status !== null && <CycleHomeCard status={cycle.status} onLogDay1={cycle.logDay1} />}
-                {cycle.isCheckInDue && <CheckInCard onSave={cycle.saveCheckIn} onLater={cycle.postponeCheckIn} />}
+                {cycle.isCheckInDue && !state.isFirstDaily && <CheckInCard onSave={cycle.saveCheckIn} onLater={cycle.postponeCheckIn} />}
                 <PatternCards
                   offerSlot={isDemoActive ? demoOfferSlot : reminders.offerSlot}
                   dueSlot={isDemoActive ? null : reminders.dueSlot}
@@ -469,47 +498,38 @@ export function TryFlow({ store, initial }: TryFlowProps) {
               </>
             ) : undefined
           }
-          onBack={state.screen === 'home' ? back : undefined}
-          onContinue={isStoryReady ? () => dispatch({ type: 'continueStory' }) : undefined}
-        />
-      )}
-      {state.screen === 'example' && snapshot !== null && (
-        <ExampleScreen
-          snapshot={snapshot}
-          demo={demo}
-          answer={state.patternOffers}
-          onAnswer={(yes) => dispatch({ type: 'answerExample', yes })}
-          onNext={() => dispatch({ type: 'exampleDone' })}
-          onBack={back}
+          onBack={state.screen === 'story' ? back : undefined}
+          onContinue={isStoryReady ? () => dispatch({ type: 'storyDone' }) : undefined}
         />
       )}
       {state.screen === 'save' && (
-        <SaveScreen
+        <KeepScreen
+          snapshot={snapshot}
           demo={demo}
           onSave={async () => {
-            await store.createFromTrySession({
-              lang,
-              baseline: snapshotRef.current?.baseline ?? DEFAULT_BASELINE,
-              prefs: { patternOffers: state.patternOffers ?? true },
-            });
+            await store.createFromTrySession({ lang, baseline: snapshotRef.current?.baseline ?? DEFAULT_BASELINE, prefs: {} });
             const paired = pairedRef.current;
             // A real tarha is remembered so Daily mode reconnects to it; the demo tarha never is.
             if (paired !== null && runtime?.demo === null)
-              await store.setPairedTarha({
-                deviceId: paired.id,
-                name: paired.name,
-                firmware: '',
-                pairedAt: Date.now(),
-              });
+              await store.setPairedTarha({ deviceId: paired.id, name: paired.name, firmware: '', pairedAt: Date.now() });
+            dispatch({ type: 'saved' });
           }}
-          onNothingSaved={resetToFresh}
-          onName={(name) => store.setDisplayName(name)}
-          onAge={(group) => store.setAgeGroup(group)}
-          onDone={() => dispatch({ type: 'saved' })}
+          onNotNow={() => dispatch({ type: 'notSaved' })}
           onBack={back}
         />
       )}
-      {state.screen === 'privacy' && <SafetyScreen demo={demo} saved={saved} onDone={() => dispatch({ type: 'privacyDone' })} />}
+      {state.screen === 'setupName' && <NameStep demo={demo} onSave={(name) => store.setDisplayName(name)} onNext={setupNext} />}
+      {state.screen === 'setupAge' && <AgeStep demo={demo} onSave={(group) => store.setAgeGroup(group)} onNext={setupNext} onBack={back} />}
+      {state.screen === 'setupCycle' && <CycleStep demo={demo} onSave={saveCycle} onNext={setupNext} onBack={back} />}
+      {state.screen === 'setupReminders' && (
+        <RemindersStep
+          demo={demo}
+          onSave={(yes) => store.updateSettings({ patternOffers: yes }).then(async () => setSettings(await store.getSettings()))}
+          onNext={setupNext}
+          onBack={back}
+        />
+      )}
+      {state.screen === 'setupFamily' && <FamilyStep demo={demo} family={family} onNext={setupNext} onBack={back} />}
       {state.screen === 'recalibrate' && <CalibrateScreen snapshot={snapshot} isDemo={state.isDemo} onSkip={back} onBack={back} />}
     </UiProvider>
   );

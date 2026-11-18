@@ -1,10 +1,30 @@
-// App navigation and lifecycle (03 §0.1, Try story L → 0 → 1 → 1b → 2 → 4 → 5 → 6, then Daily mode; 11 §1).
-// Pure reducer. Lifecycle `fresh` → `trying` when the language is chosen → `setUp` on Screen 5 "Yes"; Screen 5
-// "No" and Delete Everything both return to a fresh install (`INITIAL_TRY`).
+// App navigation and lifecycle (03 §0.1 and Flows O1–O6, rebuilt 2026-11-17; 11 §1). Pure reducer.
+// First run: Language → Meet TARA (or the 30-second demo) → Connect → Learn your calm → Keep TARA on this phone?
+// "Yes" creates storage (lifecycle `setUp`) and opens the optional setup steps: name → age → PMDD-aware cooling
+// → reminders → family → Daily mode. "No" keeps TARA running for this session with nothing saved (Try home).
+// Delete Everything returns to a fresh install (`INITIAL_TRY`).
 import type { Lang } from '../shared/types';
 
-export type TryScreen = 'language' | 'welcome' | 'connect' | 'calibrate' | 'home' | 'example' | 'save' | 'privacy' | 'daily' | 'recalibrate';
+export type TryScreen =
+  | 'language'
+  | 'intro'
+  | 'story'
+  | 'connect'
+  | 'calibrate'
+  | 'save'
+  | 'home'
+  | 'setupName'
+  | 'setupAge'
+  | 'setupCycle'
+  | 'setupReminders'
+  | 'setupFamily'
+  | 'daily'
+  | 'recalibrate';
 export type Lifecycle = 'fresh' | 'trying' | 'setUp';
+
+/** The optional setup steps after "Yes", in order (03 Flow O6). */
+export const SETUP_STEPS = ['setupName', 'setupAge', 'setupCycle', 'setupReminders', 'setupFamily'] as const;
+export type SetupStep = (typeof SETUP_STEPS)[number];
 
 export interface TryState {
   screen: TryScreen;
@@ -13,23 +33,28 @@ export interface TryState {
   isConnected: boolean;
   isDemo: boolean;
   isCalibrationSkipped: boolean;
-  /** Screen 4 answer, kept in memory until Screen 5 "Yes" (03 Flow 4 step 2). */
-  patternOffers: boolean | null;
+  /** Daily mode was just reached from setup: show the one-time tip on Home (03 Flow O6 step 6). */
+  isFirstDaily: boolean;
 }
 
 export type TryAction =
   | { type: 'chooseLanguage'; lang: Lang }
   | { type: 'continue' }
-  | { type: 'tryToCalm' }
+  | { type: 'getStarted' }
+  | { type: 'watchDemo' }
+  | { type: 'storyDone' }
   | { type: 'connected'; isDemo: boolean }
   | { type: 'next' }
   | { type: 'calibrated' }
   | { type: 'skipCalibration' }
-  | { type: 'continueStory' }
-  | { type: 'answerExample'; yes: boolean }
-  | { type: 'exampleDone' }
   | { type: 'saved' }
-  | { type: 'privacyDone' }
+  /** "No" on Keep TARA — use it for this session only; nothing is stored. */
+  | { type: 'notSaved' }
+  /** From the Try home's "Keep TARA on this phone?" card. */
+  | { type: 'askSave' }
+  /** Next setup step (each one is skippable; the screen itself saves her answer first). */
+  | { type: 'setupNext' }
+  | { type: 'tipSeen' }
   | { type: 'reset' }
   /** Settings → "Learn my calm again" (03 Flow 16) and its end. */
   | { type: 'recalibrate' }
@@ -43,65 +68,85 @@ export const INITIAL_TRY: TryState = {
   isConnected: false,
   isDemo: false,
   isCalibrationSkipped: false,
-  patternOffers: null,
+  isFirstDaily: false,
 };
 
 /** Launch state when the app is already set up: Daily mode, Home tab, in her saved language (11 §1). */
 export function setUpState(lang: Lang): TryState {
-  return { ...INITIAL_TRY, screen: 'daily', lifecycle: 'setUp', lang, isConnected: false };
+  return { ...INITIAL_TRY, screen: 'daily', lifecycle: 'setUp', lang };
 }
 
 const BACK: Record<TryScreen, TryScreen | null> = {
   language: null,
-  welcome: 'language',
-  connect: 'welcome',
+  intro: 'language',
+  story: 'intro',
+  connect: 'intro',
   calibrate: 'connect',
-  home: 'calibrate',
-  example: 'home',
-  save: 'example',
-  // Once saved there is no way back into the Try story.
-  privacy: null,
+  save: 'calibrate',
+  // After "No" she uses TARA unsaved; the way forward is the Keep TARA card, not back into setup.
+  home: null,
+  // Once saved there is no way back to the Save question; setup steps go back among themselves.
+  setupName: null,
+  setupAge: 'setupName',
+  setupCycle: 'setupAge',
+  setupReminders: 'setupCycle',
+  setupFamily: 'setupReminders',
   daily: null,
   recalibrate: 'daily',
 };
 
-/** 03 §0.2: back is allowed on every Try screen (Screen 3's active cooling is handled by the container). */
 export function canGoBack(state: TryState): boolean {
   return BACK[state.screen] !== null;
 }
+
+export function isSetupStep(screen: TryScreen): screen is SetupStep {
+  return (SETUP_STEPS as readonly TryScreen[]).includes(screen);
+}
+
+function nextSetup(state: TryState): TryState {
+  if (!isSetupStep(state.screen)) return state;
+  const following = SETUP_STEPS[SETUP_STEPS.indexOf(state.screen) + 1];
+  return following === undefined ? { ...state, screen: 'daily', isFirstDaily: true } : { ...state, screen: following };
+}
+
+const on = (state: TryState, screen: TryScreen, next: Partial<TryState>): TryState => (state.screen === screen ? { ...state, ...next } : state);
 
 export function reduceTry(state: TryState, action: TryAction): TryState {
   switch (action.type) {
     case 'chooseLanguage':
       return { ...state, lang: action.lang };
     case 'continue':
-      return state.screen === 'language' && state.lang !== null ? { ...state, screen: 'welcome', lifecycle: 'trying' } : state;
-    case 'tryToCalm':
-      return state.screen === 'welcome' ? { ...state, screen: 'connect' } : state;
+      return state.screen === 'language' && state.lang !== null ? { ...state, screen: 'intro', lifecycle: 'trying' } : state;
+    case 'getStarted':
+      return on(state, 'intro', { screen: 'connect' });
+    case 'watchDemo':
+      return on(state, 'intro', { screen: 'story' });
+    case 'storyDone':
+      return on(state, 'story', { screen: 'intro' });
     case 'connected':
       return { ...state, isConnected: true, isDemo: action.isDemo };
     case 'next':
       return state.screen === 'connect' && state.isConnected ? { ...state, screen: 'calibrate' } : state;
     case 'calibrated':
-      return state.screen === 'calibrate' ? { ...state, screen: 'home', isCalibrationSkipped: false } : state;
+      return on(state, 'calibrate', { screen: 'save', isCalibrationSkipped: false });
     case 'skipCalibration':
-      return state.screen === 'calibrate' ? { ...state, screen: 'home', isCalibrationSkipped: true } : state;
-    case 'continueStory':
-      return state.screen === 'home' && state.lifecycle === 'trying' ? { ...state, screen: 'example' } : state;
-    case 'answerExample':
-      return state.screen === 'example' ? { ...state, patternOffers: action.yes } : state;
-    case 'exampleDone':
-      return state.screen === 'example' && state.patternOffers !== null ? { ...state, screen: 'save' } : state;
+      return on(state, 'calibrate', { screen: 'save', isCalibrationSkipped: true });
     case 'saved':
-      return state.screen === 'save' ? { ...state, screen: 'privacy', lifecycle: 'setUp' } : state;
-    case 'privacyDone':
-      return state.screen === 'privacy' ? { ...state, screen: 'daily' } : state;
+      return on(state, 'save', { screen: 'setupName', lifecycle: 'setUp' });
+    case 'notSaved':
+      return on(state, 'save', { screen: 'home' });
+    case 'askSave':
+      return state.screen === 'home' && state.lifecycle === 'trying' ? { ...state, screen: 'save' } : state;
+    case 'setupNext':
+      return nextSetup(state);
+    case 'tipSeen':
+      return { ...state, isFirstDaily: false };
     case 'reset':
       return INITIAL_TRY;
     case 'recalibrate':
-      return state.screen === 'daily' ? { ...state, screen: 'recalibrate' } : state;
+      return on(state, 'daily', { screen: 'recalibrate' });
     case 'recalibrated':
-      return state.screen === 'recalibrate' ? { ...state, screen: 'daily' } : state;
+      return on(state, 'recalibrate', { screen: 'daily' });
     case 'back': {
       const previous = BACK[state.screen];
       return previous === null ? state : { ...state, screen: previous };

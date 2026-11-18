@@ -1,12 +1,17 @@
-# 12 §6 flow 8 — Arabic (RTL): the Try story in Arabic up to Home; screenshots for native-speaker review.
+# 12 §6 flow 8 — Arabic (RTL): the first run in Arabic up to Keep TARA, plus the 30-second demo prompt;
+# screenshots for native-speaker review.
 appId: org.tara.app
 ---
 - launchApp:
     clearState: true
 - tapOn: { id: "lang-ar_EG" }
 - tapOn: { id: "language-continue" }
-- takeScreenshot: ar-welcome
-- tapOn: { id: "welcome-try" }
+- takeScreenshot: ar-intro-1
+- tapOn: { id: "intro-next" }
+- takeScreenshot: ar-intro-2
+- tapOn: { id: "intro-next" }
+- takeScreenshot: ar-intro-3
+- tapOn: { id: "intro-start" }
 - tapOn: { id: "connect-button" }
 - tapOn: { id: "connect-allow", optional: true }
 - extendedWaitUntil: { visible: { id: "connect-demo" }, timeout: 20000 }
@@ -14,7 +19,9 @@ appId: org.tara.app
 - extendedWaitUntil: { visible: { id: "connect-next", enabled: true }, timeout: 15000 }
 - tapOn: { id: "connect-next" }
 - tapOn: { id: "calibrate-skip" }
-- extendedWaitUntil: { visible: { id: "prompt" }, timeout: 30000 }
-- takeScreenshot: ar-prompt
-- tapOn: { id: "prompt-yes" }
-- takeScreenshot: ar-cooling
+- takeScreenshot: ar-keep
+- tapOn: { id: "save-yes" }
+- takeScreenshot: ar-setup-name
+- tapOn: { id: "setup-name-skip" }
+- tapOn: { id: "setup-age-skip" }
+- takeScreenshot: ar-setup-cycle

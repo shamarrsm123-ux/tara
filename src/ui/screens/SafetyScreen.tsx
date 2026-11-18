@@ -1,13 +1,12 @@
-// Screen 6 — Privacy & Safety (03 Flow 6, 04 §10), also the Safety tab. Header "processed on your phone only";
-// rows: delete-after (shorter only), "No internet used ✓" (tap for why), then Delete Everything; then the
-// optional General place card. Before saving (Try mode) only the true statements are shown — there is nothing
-// to shorten or delete yet. Family (Flow 10): on Screen 6 a 100%-optional Yes/No card, in the tab the family list.
-// Lock TARA (Flow 17) uses the phone's own screen lock. The tab also holds Settings (Flow 16).
+// The Safety tab (03 Flow 6, 04 §10). Header "processed on your phone only"; rows: delete-after (shorter only),
+// "No internet used ✓" (tap for why), then Delete Everything; then the optional General place card. Before saving
+// (Try mode) only the true statements are shown — there is nothing to shorten or delete yet. Family (Flow 10),
+// Lock TARA (Flow 17) and Settings (Flow 16) follow. Since the onboarding rebuild (2026-11-17) this is no longer a
+// step of the first run: its key points are on "Keep TARA on this phone?" and family is a setup step.
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DEFAULT_SETTINGS, type Settings } from '../../shared/types';
 import { AppText } from '../components/AppText';
-import { Button } from '../components/Button';
 import { ScreenFrame } from '../components/ScreenFrame';
 import { Card, IconSquare } from '../components/Surface';
 import { PhoneShieldScene } from '../art/Scenes';
@@ -18,7 +17,6 @@ import { DeleteEverything, PlaceCard, ShorterRetention, useRetentionLabel } from
 import { FamilySection, type FamilyTools } from './FamilySection';
 import { LockCard, type LockTools } from './LockCard';
 import { SettingsSection, type SettingsTools } from './SettingsSection';
-import { DecisionCard } from '../components/DecisionCard';
 
 export interface SavedSafety {
   settings: Settings;
@@ -26,7 +24,7 @@ export interface SavedSafety {
   onDeleteEverything: () => void;
   family?: FamilyTools;
   lock?: LockTools;
-  /** Settings (03 Flow 16) — shown in the Safety tab, not on Screen 6. */
+  /** Settings (03 Flow 16). */
   settingsTools?: SettingsTools;
 }
 
@@ -34,49 +32,19 @@ interface SafetyScreenProps {
   demo: { isSpedUp: boolean } | null;
   /** Null in Try mode (nothing saved yet). */
   saved: SavedSafety | null;
-  /** Screen 6 of the story shows Done → Daily mode; the tab doesn't. */
-  onDone?: () => void;
 }
 
 const CHECK = '✓';
 
-/** Screen 6 asks first (100% optional); the Safety tab simply shows the list. */
-function FamilyBlock({ family, isStory }: { family: FamilyTools; isStory: boolean }) {
-  const { t } = useUi();
-  const [answer, setAnswer] = useState<boolean | null>(isStory && family.contacts.length === 0 ? null : true);
-  if (answer === false) return null;
-  if (answer === null) {
-    return (
-      <DecisionCard
-        tone="neutral"
-        question={t('family.question')}
-        yesLabel={t('common.yes')}
-        noLabel={t('common.no')}
-        onYes={() => setAnswer(true)}
-        onNo={() => setAnswer(false)}
-        testID="family-optin"
-      />
-    );
-  }
-  return <FamilySection {...family} startOpen={isStory && family.contacts.length === 0} />;
-}
 const ICON_SQUARE = 48;
 
-export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
+export function SafetyScreen({ demo, saved }: SafetyScreenProps) {
   const { t, palette } = useUi();
   const retentionLabel = useRetentionLabel();
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const retentionDays = saved?.settings.retentionDays ?? DEFAULT_SETTINGS.retentionDays;
-  const isStory = onDone !== undefined;
   return (
-    <ScreenFrame
-      testID={isStory ? 'screen-privacy' : 'screen-safety'}
-      title={t('tabs.safety')}
-      voiceLine="privacyHeader"
-      shouldAutoPlay={isStory}
-      demo={demo}
-      footer={isStory ? <Button label={t('safety.done')} hasArrow onPress={onDone} testID="privacy-done" /> : undefined}
-    >
+    <ScreenFrame testID="screen-safety" title={t('tabs.safety')} voiceLine="privacyHeader" shouldAutoPlay={false} demo={demo} backdrop="warm">
       <Card tint="peach" style={styles.hero}>
         <PhoneShieldScene height={180} style={styles.heroArt} />
         <AppText variant="question" isBold>
@@ -121,7 +89,7 @@ export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
         )}
       </Card>
       {saved !== null && <DeleteEverything onConfirm={saved.onDeleteEverything} />}
-      {saved?.family !== undefined && <FamilyBlock family={saved.family} isStory={isStory} />}
+      {saved?.family !== undefined && <FamilySection {...saved.family} />}
       {saved !== null && (
         <PlaceCard
           isEnabled={saved.settings.placeLabelsEnabled}
@@ -130,7 +98,7 @@ export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
         />
       )}
       {saved?.lock !== undefined && <LockCard {...saved.lock} />}
-      {saved !== null && saved.settingsTools !== undefined && !isStory && <SettingsSection settings={saved.settings} onSettings={saved.onSettings} {...saved.settingsTools} />}
+      {saved !== null && saved.settingsTools !== undefined && <SettingsSection settings={saved.settings} onSettings={saved.onSettings} {...saved.settingsTools} />}
     </ScreenFrame>
   );
 }

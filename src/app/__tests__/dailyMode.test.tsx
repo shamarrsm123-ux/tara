@@ -10,6 +10,7 @@ import { translatorFor } from '../../ui/i18n';
 import { initialStateFor } from '../launch';
 import { TryFlow } from '../TryFlow';
 import { INITIAL_TRY } from '../tryNavigation';
+import { toStory } from './onboard';
 
 const mockNotifier = {
   current: null as null | (Notifier & { calls: string[] }),
@@ -61,12 +62,7 @@ describe('Daily mode (13 Phase 8)', () => {
 
   test('Mute 30 min: the High-stress prompt stays away; turning alerts back on lets it return', async () => {
     await render(<TryFlow store={createMemoryStore()} initial={INITIAL_TRY} />);
-    for (const id of ['lang-en', 'language-continue', 'welcome-try', 'connect-button']) await press(id);
-    await seconds(1);
-    await press('connect-demo');
-    await seconds(6);
-    await press('connect-next');
-    await press('calibrate-skip');
+    await toStory();
     await press('mute-button');
     await press('mute-m30');
     expect(screen.getByTestId('muted-notice')).toHaveTextContent(t('mute.paused'), { exact: false });

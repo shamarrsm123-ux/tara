@@ -20,8 +20,9 @@ States: `fresh` → `trying` → (`setUp` | `fresh`) ; `setUp` → `wiping` → 
 | From | To | Trigger | Effects |
 |---|---|---|---|
 | `fresh` | `trying` | Language chosen | In-memory session only; store not created |
-| `trying` | `setUp` | Screen 5 "Yes" | Key + encrypted DB created; baseline, language, prefs written |
-| `trying` | `fresh` | Screen 5 "No", or app killed before Yes | Memory cleared; tarha unpaired |
+| `trying` | `setUp` | O5 "Yes, keep TARA" (was Screen 5) | Key + encrypted DB created; baseline, language written; setup answers (O6) follow |
+| `trying` | `trying` | O5 "Not now" | Stays in memory: Try home with the "Keep TARA" card; nothing stored |
+| `trying` | `fresh` | App killed before Yes | Memory cleared; tarha unpaired |
 | `setUp` | `wiping` | Delete Everything confirmed | Writes blocked (`WIPING`) |
 | `wiping` | `fresh` | Wipe complete | Key, DB, prefs, schedules, bond all gone |
 

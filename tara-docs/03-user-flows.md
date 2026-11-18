@@ -9,13 +9,13 @@
 
 ## 0. How This Document Relates to the Team's Brief
 
-The brief described 7 screens (0–6). This document keeps all 7, in the same order, with the same purpose and wording (lightly edited for voice), and adds what is needed to make them work for a real woman in a real field: a language step, a calibration step, daily-use flows, and safety/edge flows. Changes are marked 🔁 at point of use.
+The brief described 7 screens (0–6). This document kept all 7, in the same order, and added what is needed to make them work for a real woman in a real field: a language step, a calibration step, daily-use flows, and safety/edge flows. Changes are marked 🔁 at point of use. 🔁 *2026-11-17 (team decision): the first run is rebuilt as **Onboarding Flows O1–O6** below; Screens 0, 4, 5 and 6 as story steps are superseded (their content moved, see O6 "What moved"), and Screen 3 is now the 30-second demo.*
 
 ### 0.1 Structure of the App
 
 Two modes, one app:
 
-- **Try mode (first run):** a guided, linear story — Screens L, 0, 1, 1b, 2, 3, 4, 5, 6. This is also the judge demo. Nothing is written to storage until Screen 5 "Yes".
+- **First run (onboarding):** Flows O1–O6 — Language → Meet TARA → Connect → Learn your calm → Keep TARA on this phone? → optional setup. The judge demo is "See a 30-second demo" on Meet TARA. Nothing is written to storage until O5 "Yes". *(Was: the linear Try story L, 0, 1, 1b, 2, 3, 4, 5, 6.)*
 - **Daily mode (after saving):** three tabs — **Home** · **My Days** · **Safety** (privacy, family, delete, settings).
 
 🟡 *Team decision 2026-11-16 (`04a` D6): the tab bar is also shown in Try mode from Home onward, with Try-mode content (nothing saved). Screens 4–6 of the Try story still follow in order when they are built.*
@@ -24,6 +24,39 @@ Two modes, one app:
 - Back navigation in Try mode is allowed on every screen except Screen 3's active cooling (where Stop Cooling is the action).
 - Every voice line can be replayed with ▶; every prompt can also be answered by the big buttons — no gestures required.
 - All timings below are prototype defaults; the authoritative values live in `07-ble-protocol-and-core-logic.md`.
+
+---
+
+## Onboarding — Flows O1–O6 (rebuilt 2026-11-17, team decision) 🔁
+
+Replaces the brief's linear Try story (Screens 0 → 1 → 1b → 2 → 3 → 4 → 5 → 6) as the first run. Goals: shorter (5 steps before she can decide), explain TARA before asking anything, introduce PMDD-aware cooling, modern look. Onboarding screens have a **plain background** (the soft illustrated backdrop is for the main tabs only). Nothing is written to storage before O5 "Yes" (11 §1).
+
+**O1 — Language** — Flow L, unchanged.
+
+**O2 — Meet TARA** — three illustrated pages, progress dots ("Page n of 3"), a voice line each, ▶ to replay, back walks the pages:
+1. *Your tarha keeps you cool* — "A cooling headscarf with a small sensor behind your ear. When heat and stress rise, it cools you down."
+2. *TARA learns your calm* — "Green is calm, amber is rising, red is high. TARA compares you only with your own calm — never with anyone else."
+3. *Private by design* — "No internet and no account. Everything stays on this phone, and you can delete it any time." + "TARA is not a doctor and does not diagnose illness."
+
+Buttons: **Next** (pages 1–2) / **Get started** (page 3) → O3, and **See a 30-second demo** on every page → the Flow 3 story on the demo tarha (DEMO ribbon, sped up, nothing saved); after the cooling scene **Continue** (or back) returns here and the demo tarha is dropped.
+
+**O3 — Connect your tarha** — Flow 1, unchanged (including "Use demo instead").
+
+**O4 — Learn your calm** — Flow 1b, unchanged (skippable); when done it goes straight to O5.
+
+**O5 — Keep TARA on this phone?** — her live Calm meter ("This is your calm right now."), then three points: "Only a short summary of each minute is kept, encrypted." · "It is deleted after 7 days — sooner if you choose." · "No internet. Nothing leaves this phone." **[Yes, keep TARA] [Not now]**
+- **Yes:** key + encrypted database created; baseline and language written (Flow 5 step 3 rules) → O6.
+- **Not now:** "Okay. Nothing was saved." → Home (Try mode, tabs, nothing stored) with a card "Nothing is saved yet. When you close TARA, it is all gone." **[Keep TARA on this phone]** → O5. Closing the app before Yes leaves nothing (11 §1).
+
+**O6 — Setup (optional)** — one question per screen, "Step n of 5" dots, every step skippable, each answer saved before moving on ("Couldn't save" on failure); back works between setup steps, never back to O5:
+1. Name — "What should TARA call you? You can skip." **[Next] [Skip]**
+2. Age range — **[18–25] [26–35] [36–50]** · **[Skip]**
+3. **PMDD-aware cooling** — "Do you want PMDD-aware cooling?" + the Flow 19 explanation. **[Yes, turn it on] [Not now]** → "When did your last period start?" **[Today] [Yesterday] [2 … 7 days ago]** · **[Longer ago, or I don't know]** → "How long is your cycle usually?" stepper (21–45, default 28) **[Next] [I don't know — use 28 days]**. Saves `cycle_aware`, `cycle_length_days` and day 1 when known; with no date, Home asks her to log it (Flow 19 step 3).
+4. Reminders — the old Screen 4 question: "TARA can learn your days. If you often feel stressed at 2 PM, TARA can remind you at 1:30 PM to wear your tarha. Would you like that?" **[Yes] [No]** → `pattern_offers`.
+5. Family — "Do you want to add family who can help you?" + "Up to 3 people. TARA never sends anything by itself — you see every message and press Send." Flow 10's add form. **[Skip]** / **[Finish]**.
+6. → Daily mode, Home tab, with a one-time tip: "The ring shows your calm right now. Tap Cool any time to cool down." **[Got it]**
+
+What moved: the forced Screen 3 cooling scene → "See a 30-second demo" and Demo mode (Flow 18); the Screen 4 example week → setup step 4; Screen 6 Privacy → its points are on O5, the full screen is the Safety tab; General place and Lock TARA → Safety tab only.
 
 ---
 
@@ -37,6 +70,8 @@ Two modes, one app:
 ---
 
 ## Flow 0 — Welcome: Definition & Trust (Screen 0) 🟢
+
+🔁 *Superseded 2026-11-17 by O2 Meet TARA (same promises: what the tarha does, her own calm, privacy, "not a doctor").*
 
 1. Illustration of a woman wearing a light-colored tarha; a small dot glows behind her ear.
 2. Voice + text: "Are you a woman 18 to 50? Do you get tired and stressed in the sun? I'm TARA — a tarha like yours, with a small sensor behind your ear. It senses when you are stressed and cools around your head, so you can calm down and continue your day."
@@ -87,7 +122,7 @@ Two modes, one app:
 3. Below: moving graph, last 10 minutes, with green/yellow/red background bands.
 4. Big button: **Cool Around My Head** (blue).
 5. Small **Help** button (bottom corner) → Flow 11. 🔁 *New*
-6. In the Try story, the demo or real signal drifts into the red zone so Flow 3 appears naturally. In daily use, Flow 3 appears whenever the trigger in `07` fires.
+6. In the 30-second demo (O2), the demo signal drifts into the red zone so Flow 3 appears naturally. In daily use, Flow 3 appears whenever the trigger in `07` fires.
 
 ---
 
@@ -112,7 +147,7 @@ Trigger: stress in High zone (Calm ≤ 30) sustained for 60 seconds with good se
 
 ## Flow 4 — Smart Pattern (Screen 4) 🟢
 
-**In the Try story:**
+**In the Try story** — 🔁 *superseded 2026-11-17: the question is O6 step 4; the example week is gone:*
 1. After the cooling scene, a card labeled **"Example"**: a simple week strip with a red dot near 2 PM on most days.
 2. Voice + text: "TARA can learn your days. For example, if you get stressed every day at 2 PM, I can remind you at 1:30 PM to wear your tarha. Would you like that when I find a pattern?" **[Yes] [No]** — this stores her *preference* (in memory until Screen 5).
 3. Then: **Calm 80% — green — "Your brain is calm."**
@@ -128,6 +163,8 @@ Trigger: stress in High zone (Calm ≤ 30) sustained for 60 seconds with good se
 
 ## Flow 5 — Save This Experience? + Age Check (Screen 5) 🟢
 
+🔁 *Superseded 2026-11-17 by O5 (the question) and O6 steps 1–2 (name, age). Step 3's storage rules still apply. "No" no longer resets to Language: she keeps using TARA unsaved until the app closes.*
+
 1. "Do you want to save this experience?" **[Yes] [No]**
 2. **No:** "Okay. Nothing was saved." All Try-session data in memory is wiped; the tarha is unpaired; next launch starts at Flow L. 🔁 *New — enforced.*
 3. **Yes:**
@@ -139,6 +176,8 @@ Trigger: stress in High zone (Calm ≤ 30) sustained for 60 seconds with good se
 ---
 
 ## Flow 6 — Privacy & Safety (Screen 6) 🟢
+
+🔁 *2026-11-17: no longer a step of the first run. Its key points are on O5; family is O6 step 5; this content is the Safety tab.*
 
 1. Header (voice): "All your stress data was processed on your phone only."
 2. Status rows:

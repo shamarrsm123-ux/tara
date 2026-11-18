@@ -98,8 +98,9 @@ A failing test means the implementation drifted from the spec — never update a
 
 ## 6. End-to-End Tests (Maestro)
 
-1. **Try → Save:** Language → Welcome → Connect (demo) → Calibrate → Home → Prompt → Yes → Calm rises → Pattern example → Save Yes → name skip → age 26–35 → Privacy screen → Done → Home.
-2. **Try → Don't save:** same until Save → No → relaunch lands on Language.
+1. **First run → Save** (rebuilt 2026-11-17): Language → Meet TARA (3 pages) → Connect (demo) → skip calibration → Keep TARA Yes → name skip → age 26–35 → PMDD-aware cooling (3 days ago, 28 days) → reminders Yes → family skip → Daily Home with the tip and the cycle card.
+2. **First run → Not now:** same until Keep TARA → Not now → "Nothing was saved." → Try home with the Keep card → relaunch lands on Language.
+3. **30-second demo:** Meet TARA → See a 30-second demo → prompt → Yes → cooling → Calm returns → Continue → Meet TARA.
 3. **Daily alert:** setUp app, demo "Story" → prompt → No → no prompt for 15 min (fake time) → prompt again.
 4. **Reminder:** demo "Bad 2 PM week" → pattern card → Yes → reminder scheduled for 13:30.
 5. **Help:** add contact → demo very-high → help question → Yes → place "In the field" → preview text exact → composer opened with exact text.

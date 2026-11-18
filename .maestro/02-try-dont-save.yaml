@@ -1,11 +1,14 @@
-# 12 §6 flow 2 — Try → Don't save: Save → No → "Nothing was saved." → Language; a relaunch lands on Language.
+# 12 §6 flow 2 — first run → Not now: "Okay. Nothing was saved." → TARA keeps running unsaved with the
+# "Keep TARA on this phone" card; a relaunch starts fresh on Language (nothing was stored).
 appId: org.tara.app
 ---
 - launchApp:
     clearState: true
 - tapOn: { id: "lang-en" }
 - tapOn: { id: "language-continue" }
-- tapOn: { id: "welcome-try" }
+- tapOn: { id: "intro-next" }
+- tapOn: { id: "intro-next" }
+- tapOn: { id: "intro-start" }
 - tapOn: { id: "connect-button" }
 - tapOn: { id: "connect-allow", optional: true }
 - extendedWaitUntil: { visible: { id: "connect-demo" }, timeout: 20000 }
@@ -13,16 +16,10 @@ appId: org.tara.app
 - extendedWaitUntil: { visible: { id: "connect-next", enabled: true }, timeout: 15000 }
 - tapOn: { id: "connect-next" }
 - tapOn: { id: "calibrate-skip" }
-- extendedWaitUntil: { visible: { id: "prompt" }, timeout: 30000 }
-- tapOn: { id: "prompt-no" }
-- scrollUntilVisible: { element: { id: "home-continue" }, direction: DOWN }
-- tapOn: { id: "home-continue" }
-- tapOn: { id: "example-no" }
-- tapOn: { id: "example-next" }
 - tapOn: { id: "save-no" }
 - assertVisible: "Okay. Nothing was saved."
 - tapOn: { id: "notice-ok" }
-- assertVisible: { id: "screen-language" }
+- assertVisible: { id: "try-keep" }
 - stopApp
 - launchApp
 - assertVisible: { id: "screen-language" }

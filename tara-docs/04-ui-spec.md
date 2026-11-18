@@ -140,6 +140,8 @@ Yellow diagonal ribbon top-right + bar under status bar: "DEMO — not real brai
 
 ## 10. Screen Specs (aligned to `03`)
 
+🔁 *2026-11-17: first-run screens follow `03` Flows O1–O6 — Meet TARA pages (full-width illustration, progress dots, headline, body, primary + outlined demo button), Keep TARA (headline, Calm meter card, three icon rows, Yes/Not now in the footer), setup steps (dots "Step n of 5", one headline question, large chips or a field, Skip). Onboarding uses a plain background; the soft backdrop is only on Home, My Days and Safety. Specs below for Welcome (Screen 0), Screen 4 and Screen 6 as story steps are superseded.*
+
 **L — Language:** three stacked cards (64dp tall), native script large, ▶ on each. Continue at bottom.
 
 **0 — Welcome:** top half illustration with glowing sensor dot; title; 4 icon rows; small disclaimer line; full-width blue **Try to Calm Your Brain**.

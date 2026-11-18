@@ -116,6 +116,11 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 **Acceptance:** with support "more", S = 67 starts an episode after 45 s while with "none" it never does; "Alert me less today" overrides support; the meter is unchanged; at most 6 cycle dates exist (also enforced by the DB); check-ins are deleted by retention; notification texts never mention cycle or PMDD (tested in every language).
 
+## Phase 11c — Onboarding Rebuild (added 2026-11-17)
+- `03` Flows O1–O6: Meet TARA (3 pages + 30-second demo), Keep TARA on this phone? with live Calm and privacy points, optional setup (name, age, PMDD-aware cooling, reminders, family), one-time Home tip. Plain backgrounds on onboarding; the illustrated backdrop stays on the main tabs. Old Welcome, Example and Screen 6 steps removed.
+
+**Acceptance:** nothing on disk before Keep Yes; "Not now" keeps TARA unsaved with no files; every setup answer is stored and skippable; the 30-second demo returns to Meet TARA and drops the demo tarha; Maestro flows 01, 02, 03 and 08 follow the new path.
+
 ## Phase 12 — Voice & Localization Completion
 - Record final voice lines with native speakers (Egyptian Arabic, Amharic); review illustrations and copy with community members; RTL review.
 

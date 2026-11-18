@@ -1,12 +1,16 @@
-# 12 §6 flow 1 — Try → Save: Language → Welcome → Connect (demo) → Calibrate → Home → prompt Yes → Calm rises →
-# example → Save Yes → name skip → age 26–35 → Privacy → Done → Daily Home.
+# 12 §6 flow 1 — first run → Save (03 Flows O1–O6, rebuilt 2026-11-17): Language → Meet TARA (3 pages) → Connect
+# (demo) → skip calibration → Keep TARA? Yes → name skip → age 26–35 → PMDD-aware cooling (day 1 = 3 days ago,
+# 28 days) → reminders Yes → family skip → Daily Home with the one-time tip and the cycle card.
 appId: org.tara.app
 ---
 - launchApp:
     clearState: true
 - tapOn: { id: "lang-en" }
 - tapOn: { id: "language-continue" }
-- tapOn: { id: "welcome-try" }
+- assertVisible: "Your tarha keeps you cool"
+- tapOn: { id: "intro-next" }
+- tapOn: { id: "intro-next" }
+- tapOn: { id: "intro-start" }
 - tapOn: { id: "connect-button" }
 - tapOn: { id: "connect-allow", optional: true }
 - extendedWaitUntil: { visible: { id: "connect-demo" }, timeout: 20000 }
@@ -15,18 +19,17 @@ appId: org.tara.app
 - extendedWaitUntil: { visible: { id: "connect-next", enabled: true }, timeout: 15000 }
 - tapOn: { id: "connect-next" }
 - tapOn: { id: "calibrate-skip" }
-- extendedWaitUntil: { visible: { id: "prompt" }, timeout: 30000 }
-- tapOn: { id: "prompt-yes" }
-- assertVisible: { id: "cooling-card" }
-- extendedWaitUntil: { visible: "Calm", timeout: 30000 }
-- scrollUntilVisible: { element: { id: "home-continue" }, direction: DOWN }
-- tapOn: { id: "home-continue" }
-- tapOn: { id: "example-yes" }
-- tapOn: { id: "example-next" }
+- assertVisible: "Keep TARA on this phone?"
 - tapOn: { id: "save-yes" }
-- tapOn: { id: "save-name-skip" }
-- tapOn: { id: "save-age-26_35" }
-- assertVisible: { id: "screen-privacy" }
-- tapOn: { id: "family-optin-no", optional: true }
-- tapOn: { id: "privacy-done" }
+- tapOn: { id: "setup-name-skip" }
+- tapOn: { id: "setup-age-26_35" }
+- assertVisible: "Do you want PMDD-aware cooling?"
+- tapOn: { id: "setup-cycle-yes" }
+- tapOn: { id: "setup-cycle-day-3" }
+- tapOn: { id: "setup-cycle-length-next" }
+- tapOn: { id: "setup-reminders-yes" }
+- tapOn: { id: "setup-finish" }
 - assertVisible: { id: "tab-bar" }
+- assertVisible: { id: "first-tip" }
+- assertVisible: "Menstrual phase"
+- tapOn: { id: "first-tip-ok" }

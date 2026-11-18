@@ -26,7 +26,7 @@ interface ScreenFrameProps {
   title?: string;
   /** Replaces the default header row entirely. */
   header?: ReactNode;
-  /** Soft illustrated background mood (04a v3 §6); null = plain. */
+  /** Soft illustrated background mood (04a v3 §6) — main tabs only; onboarding and notices stay plain (2026-11-17). */
   backdrop?: BackdropMood | null;
   testID?: string;
 }
@@ -48,7 +48,7 @@ export function BackButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true, onBack, demo = null, title, header, backdrop = 'warm', testID }: ScreenFrameProps) {
+export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true, onBack, demo = null, title, header, backdrop = null, testID }: ScreenFrameProps) {
   const { palette, lang } = useUi();
 
   useEffect(() => {
