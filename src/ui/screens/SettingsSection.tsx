@@ -1,7 +1,9 @@
 // Settings inside the Safety tab (03 Flow 16): Language · Speak automatically · Cooling (ask / auto) · Cooling
 // length · Alerts (fewer / normal / more) · Learn my calm again · Reminders · About & privacy. Place labels and
 // App Lock have their own cards on the same screen. Every change is saved and applied to the engine at once.
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { DEMO_SCENARIO_IDS, type DemoScenarioId } from '../../demo/scenarios';
 import { LANGS, type Lang, type Settings } from '../../shared/types';
 import { LANG_NATIVE_NAME } from '../i18n';
 import { formatClock, formatNumber } from '../i18n/format';
@@ -12,9 +14,19 @@ import { Card } from '../components/Surface';
 import { useUi } from '../theme/UiProvider';
 import { SPACE } from '../theme/tokens';
 
+/** Shown in About; 5 taps open Demo mode (03 Flow 18). */
+const APP_VERSION = '0.1.0';
+const DEMO_TAPS = 5;
+
 export interface ReminderItem {
   slotStartMin: number;
   reminderAtMs: number;
+}
+
+export interface DemoTools {
+  isActive: boolean;
+  onStart: (id: DemoScenarioId) => void;
+  onExit: () => void;
 }
 
 export interface SettingsTools {
@@ -23,6 +35,8 @@ export interface SettingsTools {
   onRecalibrate: () => void;
   reminders: readonly ReminderItem[];
   onReminderOff: (slotStartMin: number) => void;
+  /** Flow 18: hidden behind 5 taps on the version number in About. */
+  demo?: DemoTools;
 }
 
 interface SettingsSectionProps extends SettingsTools {
@@ -30,8 +44,10 @@ interface SettingsSectionProps extends SettingsTools {
   onSettings: (patch: Partial<Settings>) => void;
 }
 
-export function SettingsSection({ settings, onSettings, lang, onLanguage, onRecalibrate, reminders, onReminderOff }: SettingsSectionProps) {
+export function SettingsSection({ settings, onSettings, lang, onLanguage, onRecalibrate, reminders, onReminderOff, demo }: SettingsSectionProps) {
   const { t } = useUi();
+  const [versionTaps, setVersionTaps] = useState(0);
+  const isDemoOpen = demo !== undefined && (demo.isActive || versionTaps >= DEMO_TAPS);
   const minutes = (n: number) => t('settings.minutes', { n: formatNumber(n, lang) });
   return (
     <>
@@ -104,7 +120,23 @@ export function SettingsSection({ settings, onSettings, lang, onLanguage, onReca
           {t('about.title')}
         </AppText>
         <AppText variant="body">{t('about.body')}</AppText>
+        <Pressable onPress={() => setVersionTaps((n) => n + 1)} accessibilityRole="text" testID="about-version">
+          <AppText variant="caption" color="textMuted">
+            {t('version.label', { v: APP_VERSION })}
+          </AppText>
+        </Pressable>
       </Card>
+      {isDemoOpen && demo !== undefined && (
+        <Card testID="demo-mode">
+          <AppText variant="body" isBold>
+            {t('demoMode.title')}
+          </AppText>
+          {DEMO_SCENARIO_IDS.map((id) => (
+            <Button key={id} label={t(`demoMode.${id}`)} variant="outlined" tone="neutral" onPress={() => demo.onStart(id)} testID={`demo-start-${id}`} />
+          ))}
+          {demo.isActive && <Button label={t('demoMode.exit')} onPress={demo.onExit} testID="demo-exit" />}
+        </Card>
+      )}
     </>
   );
 }

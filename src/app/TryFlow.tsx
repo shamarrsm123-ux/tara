@@ -33,6 +33,9 @@ import { playVoice, setAutoSpeak } from '../ui/voice/player';
 import { createBluetooth } from '../ble/createTarhaSource';
 import { systemClock } from '../shared/clock';
 import { createDemoRuntime, createTarhaRuntime, discardRuntime, type Runtime } from './runtime';
+import type { DemoScenarioId } from '../demo/scenarios';
+import { badTwoPmWeekHistory } from '../demo/history';
+import { detectPatterns } from '../patterns/detect';
 import { useConnect } from './useConnect';
 import { useDailyServices } from './useDailyServices';
 import { useAppLock } from './useAppLock';
@@ -72,6 +75,8 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [batteryAlert, setBatteryAlert] = useState<NotifyKind | null>(null);
+  /** Flow 18 in Daily mode: the pattern a demo week shows (in memory only), or null. */
+  const [demoOfferSlot, setDemoOfferSlot] = useState<number | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [hasStoryAction, setHasStoryAction] = useState(false);
@@ -235,6 +240,24 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   };
 
   /** Flow 13 step 3, in 05 §4 order: stop cooling, forget the tarha, cancel every notification and reminder, then the store wipe. */
+  /** Flow 18 from About: run a demo scenario in place of her tarha — labeled DEMO, never stored or mixed. */
+  const startDemoScenario = async (id: DemoScenarioId) => {
+    void discardRuntime(runtime);
+    const next = createDemoRuntime(snapshotRef.current?.baseline ?? DEFAULT_BASELINE, (a) => onActionRef.current(a), id);
+    setRuntime(next);
+    await next.session.connect(DEMO_TARHA.id);
+    next.demo?.startScenario();
+    const week = id === 'badTwoPmWeek' ? badTwoPmWeekHistory(new Date()) : null;
+    setDemoOfferSlot(week === null ? null : (detectPatterns(week.events, week.minutes, new Date()).patterns[0]?.patternMin ?? null));
+  };
+  /** Exiting demo wipes it: the demo runtime is dropped and her real tarha source comes back (Daily effect). */
+  const exitDemo = () => {
+    void discardRuntime(runtime);
+    setRuntime(null);
+    setDemoOfferSlot(null);
+  };
+  const isDemoActive = runtime?.demo != null;
+
   const deleteEverything = async () => {
     runtime?.session.dispatch({ t: 'userCool', on: false });
     await discardRuntime(runtime);
@@ -317,6 +340,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
               reminderAtMs: timeOfDayMs(reminderMinuteFor(p.slotStartMin), snapshot?.nowMs ?? 0),
             })),
             onReminderOff: reminders.turnOff,
+            demo: { isActive: isDemoActive, onStart: (id) => void startDemoScenario(id), onExit: exitDemo },
           },
         }
       : null;
@@ -410,7 +434,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           onPromptDismiss={() => runtime.session.dispatch({ t: 'promptDismiss' })}
           onAlertLess={(yes) => runtime.session.dispatch({ t: 'alertLessAnswer', yes })}
           onMute={(untilMono) => runtime.session.dispatch({ t: 'mute', untilMs: untilMono })}
-          history={history}
+          history={isDemoActive ? null : history}
           help={help}
           onHelpAnswer={(yes) => runtime.session.dispatch({ t: 'helpAnswer', yes })}
           homeBanner={
@@ -425,14 +449,14 @@ export function TryFlow({ store, initial }: TryFlowProps) {
                   </Card>
                 )}
                 <PatternCards
-                  offerSlot={reminders.offerSlot}
-                  dueSlot={reminders.dueSlot}
-                  fadedSlot={reminders.fadedSlot}
-                  needMoreDays={reminders.needMoreDays}
+                  offerSlot={isDemoActive ? demoOfferSlot : reminders.offerSlot}
+                  dueSlot={isDemoActive ? null : reminders.dueSlot}
+                  fadedSlot={isDemoActive ? null : reminders.fadedSlot}
+                  needMoreDays={!isDemoActive && reminders.needMoreDays}
                   timeOf={(m) => timeOfDayMs(m, snapshot.nowMs)}
                   reminderOf={reminderMinuteFor}
-                  onAccept={reminders.accept}
-                  onDecline={reminders.decline}
+                  onAccept={isDemoActive ? () => setDemoOfferSlot(null) : reminders.accept}
+                  onDecline={isDemoActive ? () => setDemoOfferSlot(null) : reminders.decline}
                   onDismissDue={reminders.dismissDue}
                   onDismissFaded={reminders.dismissFaded}
                 />

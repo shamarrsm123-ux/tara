@@ -2,6 +2,7 @@
 // Daily mode after a relaunch runs on the real-tarha source (none until BLE, Phase 7). Tearing down disconnects
 // and forgets the tarha (03 Flow 5 "No", Flow 13 step 3).
 import { DemoTarhaSource } from '../demo/DemoTarhaSource';
+import type { DemoScenarioId } from '../demo/scenarios';
 import { createMonitorSession, type MonitorSession } from '../engine/session';
 import type { EngineAction } from '../engine/types';
 import type { Baseline } from '../signal/stress';
@@ -18,8 +19,8 @@ export interface Runtime {
 
 type OnAction = (action: EngineAction) => void;
 
-export function createDemoRuntime(baseline: Baseline, onAction: OnAction): Runtime {
-  const demo = new DemoTarhaSource({ clock: systemClock, scenario: 'story' });
+export function createDemoRuntime(baseline: Baseline, onAction: OnAction, scenario: DemoScenarioId = 'story'): Runtime {
+  const demo = new DemoTarhaSource({ clock: systemClock, scenario });
   const session = createMonitorSession({
     source: demo,
     clock: systemClock,

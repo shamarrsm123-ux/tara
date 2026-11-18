@@ -273,6 +273,18 @@ export const en = {
     title: 'About & privacy',
     body: 'TARA works only on your phone. It does not use the internet. Your stress data is kept for at most 7 days, encrypted, and you can delete everything at any time. TARA is a research prototype, not a medical device.',
   },
+  demoMode: {
+    title: 'Demo mode',
+    story: 'Story (30 s)',
+    calmDay: 'Calm day',
+    badTwoPmWeek: 'Bad 2 PM week',
+    lowBattery: 'Low battery',
+    looseSensor: 'Loose sensor',
+    exit: 'Exit demo',
+  },
+  version: {
+    label: 'Version {{v}}',
+  },
 };
 
 export type Strings = typeof en;

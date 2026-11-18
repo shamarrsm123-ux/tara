@@ -274,4 +274,16 @@ export const am_ET: Strings = {
     title: 'ስለ TARA እና ግላዊነት',
     body: 'TARA የሚሰራው በስልክሽ ላይ ብቻ ነው። ኢንተርኔት አይጠቀምም። የጭንቀት መረጃሽ ቢበዛ ለ7 ቀናት ተመስጥሮ ይቀመጣል፣ እና ሁሉንም በማንኛውም ጊዜ መሰረዝ ትችያለሽ። TARA የምርምር ናሙና ነው፣ የሕክምና መሣሪያ አይደለም።',
   },
+  demoMode: {
+    title: 'የሙከራ ሁነታ',
+    story: 'ታሪክ (30 ሰ)',
+    calmDay: 'የተረጋጋ ቀን',
+    badTwoPmWeek: 'የ2 PM አስቸጋሪ ሳምንት',
+    lowBattery: 'ዝቅተኛ ባትሪ',
+    looseSensor: 'የላላ ዳሳሽ',
+    exit: 'ከሙከራ ውጪ',
+  },
+  version: {
+    label: 'ስሪት {{v}}',
+  },
 };
