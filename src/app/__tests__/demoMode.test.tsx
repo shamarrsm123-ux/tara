@@ -47,4 +47,23 @@ describe('Demo mode in Daily mode (03 Flow 18)', () => {
     await seconds(1);
     expect(screen.queryByText(t('demo.ribbon'))).toBeNull();
   });
+
+  test('Low battery demo: the 20 % card, then the 10 % card; Cool disabled (03 Flow 12)', async () => {
+    const store = createMemoryStore(() => Date.now());
+    await store.createFromTrySession({ lang: 'en', baseline: DEFAULT_BASELINE, prefs: {} });
+    await render(<TryFlow store={store} initial={await initialStateFor(store)} />);
+    await seconds(1);
+    await press('tab-safety');
+    await seconds(1);
+    for (let i = 0; i < 5; i += 1) await press('about-version');
+    await press('demo-start-lowBattery');
+    await press('tab-home');
+    await seconds(15);
+    expect(screen.getByTestId('battery-alert')).toHaveTextContent(t('battery.low'), { exact: false });
+    await press('battery-alert-ok');
+    await seconds(25);
+    expect(screen.getByTestId('battery-alert')).toHaveTextContent(t('battery.lock'), { exact: false });
+    expect(screen.getByTestId('home-cool').props.accessibilityState).toMatchObject({ disabled: true });
+  });
 });
+
