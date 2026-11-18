@@ -51,7 +51,7 @@ If a feature needs the cloud, an account, her exact location, or her reading abi
 1. **Her body, her data.** Brain data is processed on her phone, stored encrypted, and deleted automatically within 7 days. There is no TARA server. Nothing is uploaded, ever.
 2. **She decides.** Cooling she can stop with one tap. Reminders she agrees to. Help requests she approves every single time. Nothing about her is sent anywhere without her pressing a button.
 3. **Works in the field.** No internet. Old Android phones. Bright sun. Busy hands. Low or no literacy. Every screen has a picture, a color, a sound and a voice.
-4. **Familiar, not medical.** It's a tarha, not a device. It never diagnoses, never mentions PMDD to her, never claims to treat anything.
+4. **Familiar, not medical.** It's a tarha, not a device. It never diagnoses and never claims to treat anything. 🟡 *Revised 2026-11-17: PMDD is named only inside the opt-in PMDD-aware cooling she turns on herself (`03` Flows 19–20); it never tells her she has PMDD.*
 5. **Honest science.** TARA measures a *relative* stress signal compared with her own calm baseline. It is a research prototype, not a clinically proven product.
 
 ---

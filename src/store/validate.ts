@@ -11,8 +11,11 @@ import {
   type EventRow,
   type MinuteRow,
   type NewContact,
+  type CheckInRow,
+  type CycleStartRow,
   type PatternRow,
 } from '../shared/storePort';
+import { isValidCycleLength } from '../engine/cycle';
 import { PLACE_LABELS, type PlaceLabel, type Settings, type SourceKind } from '../shared/types';
 
 export const DAY_MS = 86_400_000;
@@ -30,6 +33,8 @@ const ALLOWED: { [K in keyof Settings]: (v: unknown) => boolean } = {
   appLock: (v) => typeof v === 'boolean',
   theme: (v) => v === 'sun' || v === 'night' || v === 'auto',
   patternOffers: (v) => typeof v === 'boolean',
+  cycleAware: (v) => typeof v === 'boolean',
+  cycleLengthDays: (v) => typeof v === 'number' && isValidCycleLength(v),
 };
 
 function invalid(what: string): never {
@@ -106,6 +111,20 @@ export function validatePattern(p: PatternRow): PatternRow {
   const isOk = Number.isInteger(p.slotStartMin) && p.slotStartMin >= 0 && p.slotStartMin < 1440 && Number.isInteger(p.matchingDays) && p.matchingDays >= 0;
   if (!isOk) invalid('pattern');
   return p;
+}
+
+/** A day 1 must be a whole timestamp and not in the future (05 §2.9). */
+export function validateCycleStart(start: CycleStartRow, nowMs: number): CycleStartRow {
+  if (!Number.isInteger(start.dayMs) || start.dayMs > nowMs || typeof start.isEstimated !== 'boolean') invalid('cycle start');
+  return { dayMs: start.dayMs, isEstimated: start.isEstimated };
+}
+
+const isLevel = (v: unknown) => v === 0 || v === 1 || v === 2;
+
+export function validateCheckIn(row: CheckInRow, nowMs: number): CheckInRow {
+  const isOk = Number.isInteger(row.dayMs) && row.dayMs <= nowMs && isLevel(row.mood) && isLevel(row.irritability) && isLevel(row.body);
+  if (!isOk) invalid('check-in');
+  return { dayMs: row.dayMs, mood: row.mood, irritability: row.irritability, body: row.body };
 }
 
 /** Rows older than this are deleted by the retention job (05 §3). */

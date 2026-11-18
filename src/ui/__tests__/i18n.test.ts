@@ -19,8 +19,9 @@ const EN_KEYS = Object.keys(FLAT.en).sort();
 const placeholders = (s: string) => [...s.matchAll(/{{(\w+)}}/g)].map((m) => m[1]).sort();
 
 // 04 §12. 🟡 Arabic equivalents drafted here; Amharic list needs a native speaker (13 Phase 12).
+// "PMDD" is allowed in the app since the decision of 2026-11-17 (02 NG1 revised) — never on the lock screen (below).
 const BANNED: Record<string, readonly RegExp[]> = {
-  any: [/abnormal/i, /disorder/i, /PMDD/i, /symptom/i, /diagnosis/i, /brain scan/i, /mind reading/i],
+  any: [/abnormal/i, /disorder/i, /symptom/i, /diagnosis/i, /brain scan/i, /mind reading/i],
   ar_EG: [/اضطراب/, /تشخيص/, /أعراض/, /غير طبيعي/],
 };
 
@@ -53,6 +54,15 @@ describe('copy rules (04 §12)', () => {
   test.each(LANGS)('%s contains no banned words', (lang) => {
     const rules = [...(BANNED.any ?? []), ...(BANNED[lang] ?? [])];
     const hits = Object.entries(FLAT[lang]).filter(([, v]) => rules.some((r) => r.test(v)));
+    expect(hits).toEqual([]);
+  });
+});
+
+describe('lock screen stays neutral (02 §8, 10 P10)', () => {
+  // Notification texts can be read by anyone holding the phone: never mood, cycle or PMDD.
+  const LOCK_SCREEN_BANNED = [/PMDD/i, /period/i, /cycle/i, /luteal/i, /mood/i, /stress/i, /الدورة/, /دورت/, /ዑደት/, /የወር አበባ/];
+  test.each(LANGS)('%s notification texts mention nothing personal', (lang) => {
+    const hits = Object.entries(FLAT[lang]).filter(([k, v]) => k.startsWith('notify.') && LOCK_SCREEN_BANNED.some((r) => r.test(v)));
     expect(hits).toEqual([]);
   });
 });

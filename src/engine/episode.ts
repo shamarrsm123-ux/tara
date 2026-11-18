@@ -22,10 +22,8 @@ interface EpisodeStep {
 const MS_PER_S = 1000;
 const MS_PER_MIN = 60_000;
 
-const isHigh = (s: number) => s >= ZONE_HIGH_MIN_S;
-
-function stepPending(state: EpisodeState, stress: number | null, valid: boolean, nowMs: number, sustainS: number): EpisodeStep {
-  const pending = pushSustain(state.pending, classify(valid, stress, isHigh), nowMs);
+function stepPending(state: EpisodeState, stress: number | null, valid: boolean, nowMs: number, sustainS: number, highMinS: number): EpisodeStep {
+  const pending = pushSustain(state.pending, classify(valid, stress, (v) => v >= highMinS), nowMs);
   if (pending === null) return { state: { ...state, phase: 'none', pending: null }, change: null };
   const outcome = sustainOutcome(pending, nowMs, sustainS);
   if (outcome === 'met') return { state: { ...state, phase: 'high', pending: null, calmHoldStartMs: null }, change: 'started' };
@@ -46,9 +44,17 @@ function stepHigh(state: EpisodeState, stress: number | null, valid: boolean, no
   return { state: { ...state, calmHoldStartMs: holdStart }, change: null };
 }
 
-export function stepEpisode(state: EpisodeState, stress: number | null, valid: boolean, nowMs: number, sustainS: number): EpisodeStep {
+/** `highMinS` is the high-zone threshold, lowered in harder cycle phases (07 §10.3). */
+export function stepEpisode(
+  state: EpisodeState,
+  stress: number | null,
+  valid: boolean,
+  nowMs: number,
+  sustainS: number,
+  highMinS: number = ZONE_HIGH_MIN_S,
+): EpisodeStep {
   const isValidSecond = valid && stress !== null;
-  const result = state.phase === 'high' ? stepHigh(state, stress, valid, nowMs) : stepPending(state, stress, valid, nowMs, sustainS);
+  const result = state.phase === 'high' ? stepHigh(state, stress, valid, nowMs) : stepPending(state, stress, valid, nowMs, sustainS, highMinS);
   return {
     state: { ...result.state, lastValidMs: isValidSecond ? nowMs : result.state.lastValidMs },
     change: result.change,

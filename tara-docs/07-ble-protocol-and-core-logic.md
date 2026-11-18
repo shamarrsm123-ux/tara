@@ -235,4 +235,52 @@ RETENTION_MAX_DAYS = 7
 
 ---
 
+## 10. Cycle-Aware (PMDD-Aware) Cooling — decision 2026-11-17
+
+Opt-in (`settings.cycle_aware`). Pure logic in `engine/cycle.ts`; the engine receives today's support level as an input (`{ t: 'cycleSupport' }`).
+
+### 10.1 Phase model
+Cycle day = local calendar days since the latest logged day 1, + 1. Cycle length L = the average of gaps between her real (not estimated) day-1 dates that fall within 21–45 days, else her setting (default 28). The luteal phase is taken as a fixed 14 days, so ovulation ≈ day L − 14.
+
+| Phase | Days |
+|---|---|
+| Menstrual | 1–5 |
+| Follicular | 6 … ovulation − 2 |
+| Ovulatory | ovulation ± 1 |
+| Early luteal | ovulation + 2 … L − 7 |
+| Late luteal | the last 7 days (L − 6 … L), and up to 10 days past L when her period is late |
+| Unknown | nothing logged, or more than 10 days late — Home asks her to log day 1 |
+
+Precedence: menstrual, then late luteal, then ovulatory, then follicular / early luteal by position (so a 21-day cycle has no follicular days).
+
+### 10.2 Support level
+- **more** — late luteal, and menstrual days 1–2 (PMDD symptoms cluster in the late luteal phase and ease within the first days of bleeding).
+- **some** — early luteal (luteal progesterone raises core temperature ≈ 0.3–0.5 °C and delays the sweating threshold).
+- **none** — everything else.
+
+### 10.3 What changes
+| | none | some | more |
+|---|---|---|---|
+| High-episode threshold on S | 70 | 67 | 65 |
+| Hold time (× `SUSTAIN_S[sensitivity]`) | 1 | 1 | 0.75 (60 → 45 s on Normal) |
+| Gap between automatic cools | 30 min | 30 min | 20 min |
+
+The Calm meter and its zones do **not** change (her days stay comparable); only when an episode is called. "Alert me less today" overrides cycle support for that day. Cooling length, the 20-minute continuous limit and the 5-minute rest do not change.
+
+🟡 *Every number in 10.1–10.3 is a conservative starting point, not a published value for this stress index. Tune in Phase 15 field sessions and record changes here.*
+
+### 10.4 Constants
+```ts
+CYCLE_LENGTH_MIN_DAYS = 21; CYCLE_LENGTH_MAX_DAYS = 45; CYCLE_LENGTH_DEFAULT_DAYS = 28
+CYCLE_LUTEAL_DAYS = 14; CYCLE_MENSTRUAL_DAYS = 5; CYCLE_LATE_LUTEAL_DAYS = 7
+CYCLE_OVULATORY_HALF_WINDOW_DAYS = 1; CYCLE_MENSTRUAL_SUPPORT_DAYS = 2; CYCLE_STALE_LATE_DAYS = 10
+CYCLE_STARTS_KEPT = 6; CYCLE_CORRECTION_WINDOW_DAYS = 15; CYCLE_HEADS_UP_DAYS = 1
+CYCLE_HIGH_SHIFT_S = { none: 0, some: 3, more: 5 }
+CYCLE_SUSTAIN_FACTOR = { none: 1, some: 1, more: 0.75 }
+CYCLE_AUTO_GAP_MIN = { none: 30, some: 30, more: 20 }
+CHECKIN_FROM_HOUR = 18
+```
+
+---
+
 *End of BLE Protocol & Core Logic. Next: `08-development-rules.md`.*

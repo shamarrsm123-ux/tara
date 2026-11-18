@@ -58,6 +58,8 @@ No exact age, no phone number of her own, no email, no device ID.
 | `app_lock` | bool | false |
 | `theme` | enum `sun`/`night`/`auto` | `sun` |
 | `pattern_offers` | bool | true — 🟡 *Phase 6: the Screen 4 answer ("Would you like that when I find a pattern?", `03` Flow 4) had no column; No → patterns are not offered.* |
+| `cycle_aware` | bool | false — PMDD-aware cooling, opt-in (`03` Flow 19; migration v2) |
+| `cycle_length_days` | int 21–45 | 28 — **CHECK (BETWEEN 21 AND 45)**; used until real day-1 dates teach the app (`07` §10.1) |
 
 ### 2.3 `baseline`
 | Field | Type | Notes |
@@ -127,7 +129,25 @@ Contacts do **not** expire with the 7-day window (they're her settings, not brai
 | `firmware` | text | |
 | `paired_at` | int | |
 
-### 2.9 Not stored, ever
+### 2.9 `cycle_start` — opt-in, latest 6 only (decision 2026-11-17)
+| Field | Type | Notes |
+|---|---|---|
+| `day_ms` | int PK | Local midnight of day 1 of her period |
+| `is_estimated` | bool | true when implied by "Not right? I am in my…" (never used to learn her cycle length) |
+
+Only dates — never flow, pain or mood. At most **6 rows** (trigger deletes the oldest), so her average cycle length can be learned; this is the one table that outlives the 7-day window, because a cycle is longer than a week. A new day 1 within 15 days of the latest one — or any "Not right? I am in my…" correction — replaces the latest one instead of starting a new cycle. Removed by "Forget my cycle dates" and by Delete Everything. 🟡 *Retention of 6 dates chosen by the team on 2026-11-17.*
+
+### 2.10 `check_in` — the evening check-in (decision 2026-11-17)
+| Field | Type | Notes |
+|---|---|---|
+| `day_ms` | int PK | Local midnight of the day she answered for; answering again replaces it |
+| `mood` | int ∈ {0,1,2} | Low or sad: not at all / a little / a lot |
+| `irritability` | int ∈ {0,1,2} | Irritable or tense |
+| `body` | int ∈ {0,1,2} | Body: tired, pain or heavy |
+
+Deleted by the retention job like minute summaries (≤ 7 days). 🟡 *Three items loosely modeled on the daily record clinicians use for PMDD; not a clinical instrument.*
+
+### 2.11 Not stored, ever
 Raw EEG · per-second values · GPS/location · her phone number · contact list beyond chosen entries · SMS content or delivery status · advertising IDs · crash logs with content · anything from the Try session except the baseline (and only if she saves).
 
 ---
@@ -139,6 +159,7 @@ Runs: on app start, on every hour while running, and right after `retention_days
 ```sql
 DELETE FROM minute_summary WHERE ts_minute < :cutoff;
 DELETE FROM event          WHERE ts        < :cutoff;
+DELETE FROM check_in       WHERE day_ms    < :cutoff;
 -- then recompute patterns; mark unsupported ones 'faded'; cancel their reminders
 ```
 `cutoff = now − retention_days × 24h`. After large deletes, run `PRAGMA incremental_vacuum` (or periodic `VACUUM`) so deleted pages don't linger in the file. SQLCipher's `secure_delete` pragma ON so freed pages are zeroed.
@@ -160,7 +181,7 @@ DELETE FROM event          WHERE ts        < :cutoff;
 
 ## 5. Migrations
 
-Schema version stored in `PRAGMA user_version`. Migrations are ordered, idempotent, and committed with the code. A failed migration must never leave a half-migrated DB: run inside a transaction; on failure, keep the old DB and show "Please update TARA" rather than losing data silently.
+Schema version stored in `PRAGMA user_version`. Migrations are ordered, idempotent, and committed with the code. **v1** — the tables above as first released. **v2** (2026-11-17) — `settings.cycle_aware`, `settings.cycle_length_days`, `cycle_start`, `check_in`. A failed migration must never leave a half-migrated DB: run inside a transaction; on failure, keep the old DB and show "Please update TARA" rather than losing data silently.
 
 ---
 

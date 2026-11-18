@@ -98,5 +98,27 @@ CREATE TABLE paired_tarha (
 );
 `;
 
-export const MIGRATIONS: readonly Migration[] = [{ version: 1, sql: V1 }];
+// v2 — cycle-aware cooling and the daily check-in (05 §2.2, §2.9, §2.10; decision 2026-11-17).
+const V2 = `
+ALTER TABLE settings ADD COLUMN cycle_aware INTEGER NOT NULL DEFAULT 0 CHECK (cycle_aware IN (0,1));
+ALTER TABLE settings ADD COLUMN cycle_length_days INTEGER NOT NULL DEFAULT 28 CHECK (cycle_length_days BETWEEN 21 AND 45);
+CREATE TABLE cycle_start (
+  day_ms INTEGER PRIMARY KEY,
+  is_estimated INTEGER NOT NULL CHECK (is_estimated IN (0,1))
+);
+CREATE TRIGGER cycle_start_limit AFTER INSERT ON cycle_start
+WHEN (SELECT COUNT(*) FROM cycle_start) > 6
+BEGIN DELETE FROM cycle_start WHERE day_ms = (SELECT MIN(day_ms) FROM cycle_start); END;
+CREATE TABLE check_in (
+  day_ms INTEGER PRIMARY KEY,
+  mood INTEGER NOT NULL CHECK (mood IN (0,1,2)),
+  irritability INTEGER NOT NULL CHECK (irritability IN (0,1,2)),
+  body INTEGER NOT NULL CHECK (body IN (0,1,2))
+);
+`;
+
+export const MIGRATIONS: readonly Migration[] = [
+  { version: 1, sql: V1 },
+  { version: 2, sql: V2 },
+];
 export const SCHEMA_VERSION = MIGRATIONS.length;

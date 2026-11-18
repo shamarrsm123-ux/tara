@@ -6,7 +6,9 @@ import { TaraError } from '../shared/errors';
 import type {
   AgeGroup,
   BaselineRecord,
+  CheckInRow,
   Contact,
+  CycleStartRow,
   EventRow,
   MinuteRow,
   NewContact,
@@ -18,6 +20,7 @@ import type {
   TrySessionInput,
 } from '../shared/storePort';
 import { DEFAULT_SETTINGS, LANGS, type Lang, type Settings } from '../shared/types';
+import { mergeCycleStart } from '../engine/cycle';
 import { MIGRATIONS, SCHEMA_VERSION } from './schema';
 import {
   normalizeDisplayName,
@@ -25,7 +28,9 @@ import {
   utcOffsetMin,
   validateAgeGroup,
   validateBaseline,
+  validateCheckIn,
   validateContact,
+  validateCycleStart,
   validateEvent,
   validateMinute,
   validatePattern,
@@ -82,6 +87,8 @@ interface SettingsRow {
   app_lock: number;
   theme: Settings['theme'];
   pattern_offers: number;
+  cycle_aware: number;
+  cycle_length_days: number;
 }
 
 function settingsFromRow(r: SettingsRow): Settings {
@@ -96,11 +103,13 @@ function settingsFromRow(r: SettingsRow): Settings {
     appLock: r.app_lock === 1,
     theme: r.theme,
     patternOffers: r.pattern_offers === 1,
+    cycleAware: r.cycle_aware === 1,
+    cycleLengthDays: r.cycle_length_days,
   };
 }
 
 const SETTINGS_COLUMNS =
-  'retention_days, speak_automatically, cooling_mode, cooling_minutes, alert_sensitivity, place_labels_enabled, enabled_place_labels, app_lock, theme, pattern_offers';
+  'retention_days, speak_automatically, cooling_mode, cooling_minutes, alert_sensitivity, place_labels_enabled, enabled_place_labels, app_lock, theme, pattern_offers, cycle_aware, cycle_length_days';
 
 function settingsParams(s: Settings): SqlValue[] {
   return [
@@ -114,6 +123,8 @@ function settingsParams(s: Settings): SqlValue[] {
     b(s.appLock),
     s.theme,
     b(s.patternOffers),
+    b(s.cycleAware),
+    s.cycleLengthDays,
   ];
 }
 
@@ -212,7 +223,7 @@ export function createSqlStore(deps: SqlStoreDeps): Store {
     const t = now();
     await inTransaction(c, async () => {
       await c.run('INSERT INTO profile (id, display_name, age_group, language, created_at) VALUES (1, NULL, NULL, ?, ?);', [input.lang, t]);
-      await c.run(`INSERT INTO settings (id, ${SETTINGS_COLUMNS}) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, settingsParams(settings));
+      await c.run(`INSERT INTO settings (id, ${SETTINGS_COLUMNS}) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, settingsParams(settings));
       await c.run('INSERT INTO baseline (created_at, ratio_median, ratio_spread, is_default, active) VALUES (?, ?, ?, ?, 1);', [
         t,
         baseline.m,
@@ -220,6 +231,11 @@ export function createSqlStore(deps: SqlStoreDeps): Store {
         b(baseline.isDefault),
       ]);
     });
+  }
+
+  async function readCycleStarts(c: SqlConnection): Promise<CycleStartRow[]> {
+    const rows = await c.all<{ day_ms: number; is_estimated: number }>('SELECT day_ms, is_estimated FROM cycle_start ORDER BY day_ms;');
+    return rows.map((r) => ({ dayMs: r.day_ms, isEstimated: r.is_estimated === 1 }));
   }
 
   async function readSettings(c: SqlConnection): Promise<Settings> {
@@ -233,8 +249,9 @@ export function createSqlStore(deps: SqlStoreDeps): Store {
     const cutoff = retentionCutoff(now(), retentionDays);
     const minutes = await c.run('DELETE FROM minute_summary WHERE ts_minute < ?;', [cutoff]);
     const events = await c.run('DELETE FROM event WHERE ts < ?;', [cutoff]);
+    const checkIns = await c.run('DELETE FROM check_in WHERE day_ms < ?;', [cutoff]);
     await c.exec('PRAGMA incremental_vacuum;');
-    return { deletedRows: minutes.changes + events.changes };
+    return { deletedRows: minutes.changes + events.changes + checkIns.changes };
   }
 
   return {
@@ -451,6 +468,42 @@ export function createSqlStore(deps: SqlStoreDeps): Store {
           'SELECT device_id, name, firmware, paired_at FROM paired_tarha WHERE id = 1;',
         );
         return r === undefined ? null : { deviceId: r.device_id, name: r.name, firmware: r.firmware, pairedAt: r.paired_at };
+      }),
+
+    addCycleStart(start) {
+      const valid = validateCycleStart(start, now());
+      return op((c) =>
+        inTransaction(c, async () => {
+          const merged = mergeCycleStart(await readCycleStarts(c), valid);
+          await c.run('DELETE FROM cycle_start;');
+          for (const s of merged) await c.run('INSERT INTO cycle_start (day_ms, is_estimated) VALUES (?, ?);', [s.dayMs, b(s.isEstimated)]);
+        }),
+      );
+    },
+
+    listCycleStarts: () => op(readCycleStarts),
+
+    clearCycleStarts: () => op(async (c) => void (await c.run('DELETE FROM cycle_start;'))),
+
+    saveCheckIn(row) {
+      const valid = validateCheckIn(row, now());
+      return op(async (c) => {
+        await c.run('INSERT OR REPLACE INTO check_in (day_ms, mood, irritability, body) VALUES (?, ?, ?, ?);', [
+          valid.dayMs,
+          valid.mood,
+          valid.irritability,
+          valid.body,
+        ]);
+      });
+    },
+
+    queryCheckIns: (fromMs, toMs) =>
+      op(async (c) => {
+        const rows = await c.all<{ day_ms: number; mood: number; irritability: number; body: number }>(
+          'SELECT day_ms, mood, irritability, body FROM check_in WHERE day_ms >= ? AND day_ms < ? ORDER BY day_ms;',
+          [fromMs, toMs],
+        );
+        return rows.map((r) => ({ dayMs: r.day_ms, mood: r.mood, irritability: r.irritability, body: r.body }) as CheckInRow);
       }),
 
     runRetention: () => op(retention),

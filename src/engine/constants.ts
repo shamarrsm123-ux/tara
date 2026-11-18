@@ -104,3 +104,35 @@ export const MINUTE_COOLING_MIN_S = 30;
 export const SCAN_TIMEOUT_S = 10;
 export const RECONNECT_BACKOFF_START_S = 2;
 export const RECONNECT_BACKOFF_MAX_S = 60;
+
+// ---- Cycle-aware cooling (07 §10, decision 2026-11-17) ----
+// Phase model: luteal length is fairly constant (~14 d); the follicular phase absorbs cycle-length variation.
+// PMDD symptoms cluster in the late luteal phase and ease within the first days of menstruation; luteal
+// progesterone raises core temperature ~0.3–0.5 °C and delays the sweating threshold. 🟡 Every value below is
+// a conservative starting point, not a published figure for this stress index — tune in field sessions (Phase 15).
+export const CYCLE_LENGTH_MIN_DAYS = 21;
+export const CYCLE_LENGTH_MAX_DAYS = 45;
+export const CYCLE_LENGTH_DEFAULT_DAYS = 28;
+export const CYCLE_LUTEAL_DAYS = 14;
+export const CYCLE_MENSTRUAL_DAYS = 5;
+export const CYCLE_LATE_LUTEAL_DAYS = 7;
+/** Days either side of the estimated ovulation day counted as the ovulatory phase. */
+export const CYCLE_OVULATORY_HALF_WINDOW_DAYS = 1;
+/** First menstrual days that still get the strongest support (symptoms ease within a few days). */
+export const CYCLE_MENSTRUAL_SUPPORT_DAYS = 2;
+/** Past the expected start by more than this, the phase is unknown until she logs day 1 again. */
+export const CYCLE_STALE_LATE_DAYS = 10;
+/** Only the latest start dates are kept, to learn her cycle length (05 §2.9, 10 P4a). */
+export const CYCLE_STARTS_KEPT = 6;
+/** A new day 1 this soon after the previous one corrects it instead of starting a new cycle. */
+export const CYCLE_CORRECTION_WINDOW_DAYS = 15;
+/** Heads-up on Home this many days before the late luteal phase. */
+export const CYCLE_HEADS_UP_DAYS = 1;
+
+/** How much earlier cooling is offered per support level: lower high-stress threshold, shorter hold, shorter auto gap. */
+export const CYCLE_HIGH_SHIFT_S = { none: 0, some: 3, more: 5 } as const;
+export const CYCLE_SUSTAIN_FACTOR = { none: 1, some: 1, more: 0.75 } as const;
+export const CYCLE_AUTO_GAP_MIN = { none: AUTO_COOL_MIN_GAP_MIN, some: AUTO_COOL_MIN_GAP_MIN, more: 20 } as const;
+
+// Daily check-in (03 Flow 20): offered on Home from this local hour, once per day.
+export const CHECKIN_FROM_HOUR = 18;

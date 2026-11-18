@@ -5,7 +5,6 @@ import type { Clock, Settings, VoiceLineId, Zone } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/types';
 import { applyPhoneBattery, applyTarhaBattery, INITIAL_BATTERY, type BatteryState } from './battery';
 import {
-  AUTO_COOL_MIN_GAP_MIN,
   HELP_COOLDOWN_MIN,
   HELP_SUSTAIN_MIN,
   NO_COUNT_ASK,
@@ -24,6 +23,7 @@ import {
   tickCooling,
   type CoolingState,
 } from './cooling';
+import { cycleTuning, type CycleSupport } from './cycle';
 import { INITIAL_EPISODE, stepEpisode, type EpisodeState } from './episode';
 import { classify, pushSustain, sustainOutcome, type Sustain } from './sustain';
 import type { EngineAction, EngineInput, EngineSnapshot, Step } from './types';
@@ -59,6 +59,8 @@ export interface EngineState {
   /** In this episode, cooling ran or the prompt was shown (07 §5.4 precondition for the help question). */
   hasEpisodeIntervention: boolean;
   lastZone: Zone;
+  /** Today's cycle support (07 §10.3). */
+  cycleSupport: CycleSupport;
 }
 
 const NEVER = Number.NEGATIVE_INFINITY;
@@ -76,6 +78,7 @@ export function initialEngineState(settings: Settings = DEFAULT_SETTINGS): Engin
     isAskingAlertLess: false,
     hasEpisodeIntervention: false,
     lastZone: 'unknown',
+    cycleSupport: 'none',
   };
 }
 
@@ -94,13 +97,13 @@ const withCooling = (s: EngineState, step: Step<CoolingState>): Step<EngineState
  * muted, the 15 min cooldown after a prompt, or the 10 min quiet after cooling. So if stress stays high after a
  * No or after cooling, she is asked again once the quiet time is over (decision 2026-11-16, 03 > 07).
  */
-function maybePrompt(s: EngineState, now: number): Step<EngineState> {
+function maybePrompt(s: EngineState, now: number, autoGapMin: number): Step<EngineState> {
   const isBlocked =
     s.cooling.display !== 'off' || isMuted(s, now) || now < s.prompt.cooldownUntilMs || now < s.cooling.quietUntilMs || s.prompt.isShowing;
   if (isBlocked) return { state: s, actions: [] };
 
   if (s.settings.coolingMode === 'auto') {
-    if (now < s.prompt.lastAutoStartMs + AUTO_COOL_MIN_GAP_MIN * MS_PER_MIN || coolBlockReason(s.cooling, now) !== null) {
+    if (now < s.prompt.lastAutoStartMs + autoGapMin * MS_PER_MIN || coolBlockReason(s.cooling, now) !== null) {
       return { state: s, actions: [] };
     }
     const cool = requestCoolOn(s.cooling, 'auto', s.settings, now);
@@ -161,9 +164,12 @@ export interface EngineTiming {
 function onTick(s0: EngineState, calm: number | null, zone: Zone, valid: boolean, now: number, day: string, timing: EngineTiming): Step<EngineState> {
   const stress = calm === null ? null : 100 - calm;
   const cool = withCooling(s0, tickCooling(s0.cooling, now));
-  const sensitivity = cool.state.alertLessDay === day ? 'fewer' : cool.state.settings.alertSensitivity;
-  const sustainS = timing.sustainS ?? SUSTAIN_S[sensitivity];
-  const ep = stepEpisode(cool.state.episode, stress, valid, now, sustainS);
+  const isAlertLess = cool.state.alertLessDay === day;
+  const sensitivity = isAlertLess ? 'fewer' : cool.state.settings.alertSensitivity;
+  // "Alert me less today" wins over cycle support: she asked for fewer prompts (02 §12, 07 §10.3).
+  const tuning = cycleTuning(isAlertLess ? 'none' : cool.state.cycleSupport);
+  const sustainS = timing.sustainS ?? Math.round(SUSTAIN_S[sensitivity] * tuning.sustainFactor);
+  const ep = stepEpisode(cool.state.episode, stress, valid, now, sustainS, tuning.highMinS);
   const s1: EngineState = {
     ...cool.state,
     episode: ep.state,
@@ -171,7 +177,7 @@ function onTick(s0: EngineState, calm: number | null, zone: Zone, valid: boolean
   };
   const episodeActions: EngineAction[] =
     ep.change === 'started' ? [{ a: 'logEvent', type: 'high_episode_start' }] : ep.change === 'ended' ? [{ a: 'logEvent', type: 'high_episode_end' }] : [];
-  const prompt = s1.episode.phase === 'high' ? maybePrompt(s1, now) : { state: s1, actions: [] };
+  const prompt = s1.episode.phase === 'high' ? maybePrompt(s1, now, tuning.autoGapMin) : { state: s1, actions: [] };
   const s2 = { ...prompt.state, hasEpisodeIntervention: prompt.state.hasEpisodeIntervention || prompt.state.cooling.display === 'on' };
   const help = updateHelp(s2, stress, valid, now);
   const calmer = updateCalmer(help.state, zone, valid);
@@ -242,6 +248,8 @@ export function reduce(s: EngineState, input: EngineInput, now: number, day: str
     }
     case 'settings':
       return { state: { ...s, settings: input.settings }, actions: [] };
+    case 'cycleSupport':
+      return { state: { ...s, cycleSupport: input.support }, actions: [] };
   }
 }
 
@@ -262,6 +270,7 @@ export function snapshotOf(s: EngineState, now: number, day: string): EngineSnap
     isMuted: isMuted(s, now),
     isConnected: s.cooling.isConnected,
     tarhaBatteryPct: s.cooling.batteryPct,
+    cycleSupport: s.cycleSupport,
   };
 }
 

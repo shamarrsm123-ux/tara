@@ -111,6 +111,11 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 🟡 *Flow 18 note (2026-11-17): Demo mode is also reachable in Daily mode by tapping the version in About 5 times; scenarios run on the demo tarha with the DEMO banner, "Bad 2 PM week" offers its pattern from in-memory history only (nothing is scheduled or stored), My Days hides saved data while a demo runs, and Exit demo returns to her tarha. Phase 16's privacy sheet is `docs/privacy-sheet.md`.*
 
+## Phase 11b — PMDD-Aware Cooling & Daily Check-in (added 2026-11-17)
+- `engine/cycle.ts` (phase model, support level, tuning; `07` §10), engine input `cycleSupport`, store migration v2 (`05` §2.9–2.10), Settings card, Home cycle card, evening check-in, My Days phase + answers (`03` Flows 19–20).
+
+**Acceptance:** with support "more", S = 67 starts an episode after 45 s while with "none" it never does; "Alert me less today" overrides support; the meter is unchanged; at most 6 cycle dates exist (also enforced by the DB); check-ins are deleted by retention; notification texts never mention cycle or PMDD (tested in every language).
+
 ## Phase 12 — Voice & Localization Completion
 - Record final voice lines with native speakers (Egyptian Arabic, Amharic); review illustrations and copy with community members; RTL review.
 

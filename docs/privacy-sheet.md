@@ -20,6 +20,7 @@ TARA reads a stress signal from a small sensor behind the ear. That is brain-der
 | P10 | No identity required | No login, no phone number of hers, no exact age; name is optional | Screen 5: name and age group both have Skip |
 | P11 | Others holding her phone can't see her data (if she wants) | Optional App Lock with the phone's own PIN / pattern / fingerprint | Safety → Lock TARA |
 | P12 | The lock screen doesn't reveal stress | Notifications say only "TARA: time for a cool break." — never "high stress" | Lock the phone during the Story demo |
+| P4a | Cycle dates are minimal (opt-in PMDD-aware cooling) | Only the day each period started — never flow, pain or mood — and only the latest 6; never on the lock screen; deleted with everything else | Settings → PMDD-aware cooling explains exactly this |
 | P13 | Demo never mixes with real data | Every reading carries its source; the database refuses demo rows; demo screens always show **DEMO — not real brain data** | The yellow DEMO banner is on every demo screen |
 
 **Honesty:** TARA's stress index is a research signal compared with her own calm baseline, not a medical

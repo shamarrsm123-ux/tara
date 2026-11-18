@@ -178,7 +178,8 @@ Yellow diagonal ribbon top-right + bar under status bar: "DEMO — not real brai
 ## 12. Copy Rules
 
 - Speak to her as "you"; TARA speaks as "I".
-- Never: "abnormal", "disorder", "PMDD", "symptoms", "diagnosis", "brain scan", "mind reading".
+- Never: "abnormal", "disorder", "symptoms", "diagnosis", "brain scan", "mind reading".
+- 🟡 *2026-11-17: "PMDD" is allowed only in the opt-in PMDD-aware cooling (Flows 19–20) and never in a notification text (tested). Menstrual phases use their names: menstrual, follicular, ovulatory, early luteal, late luteal.*
 - 🟡 *Phase 1: Arabic and Amharic strings are drafts by the developer, not native speakers; they must be reviewed in Phase 12. Arabic banned-word equivalents (اضطراب، تشخيص، أعراض، غير طبيعي) are tested; the Amharic list needs a native speaker.*
 - Prefer: "stress", "calm", "cool break", "your tarha", "your phone".
 - Every privacy statement must be literally true of the build (checked in `12` §4).

@@ -1,5 +1,6 @@
 // Engine inputs, actions and snapshot (09 §4). The engine is the only producer of prompts, help questions
 // and automatic cooling; the UI may only dispatch inputs.
+import type { CycleSupport } from './cycle';
 import type { EventType, HapticPattern, NotifyKind, Settings, TarhaStatus, VoiceLineId, Zone } from '../shared/types';
 
 export type EngineInput =
@@ -15,7 +16,9 @@ export type EngineInput =
   | { t: 'extendCooling' }
   | { t: 'mute'; untilMs: number | null } // on the same monotonic timeline as `nowMono`
   | { t: 'phoneBattery'; pct: number }
-  | { t: 'settings'; settings: Settings };
+  | { t: 'settings'; settings: Settings }
+  /** Today's cycle support level (07 §10.3); 'none' when cycle-aware cooling is off. */
+  | { t: 'cycleSupport'; support: CycleSupport };
 
 export type CoolOnReason = 'manual' | 'prompt' | 'auto';
 /** 🟡 `battery` added: the app also stops cooling at ≤ 10% (11 §8 invariant 7), not only the firmware. */
@@ -72,6 +75,8 @@ export interface EngineSnapshot {
   isMuted: boolean;
   isConnected: boolean;
   tarhaBatteryPct: number | null;
+  /** Cycle support level currently applied to the triggers. */
+  cycleSupport: CycleSupport;
 }
 
 export interface Step<S> {

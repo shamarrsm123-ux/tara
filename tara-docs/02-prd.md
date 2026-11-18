@@ -50,7 +50,7 @@ Three parts:
 - G6: Prove the privacy claims are real: verifiable by a judge (airplane mode works; the app has no internet permission in its release build; Delete Everything leaves nothing behind).
 
 ### 3.2 Non-Goals
-- NG1: No diagnosis of PMDD or any condition. The app never shows the word "PMDD" to the wearer.
+- NG1: No diagnosis of PMDD or any condition. 🟡 *Revised 2026-11-17 (team decision): the word "PMDD" may appear only in the opt-in PMDD-aware cooling (Settings card and Home cycle card, `03` Flows 19–20). The app never says she has PMDD, and never shows it — or anything about mood or cycle — on the lock screen.*
 - NG2: No cloud, accounts, login, sync, analytics, crash-reporting services, or ads.
 - NG3: No GPS or location tracking of any kind.
 - NG4: No AI chatbot, no "mental health coaching" content.
@@ -232,10 +232,10 @@ There is exactly one role: **the wearer**, on her own phone. There are no other 
 ## 10. MVP Scope (Prototype)
 
 ### 10.1 Must Have
-Language + voice · Welcome · Connect with fit indicator · Learn Your Calm · Home with live Calm meter + graph · High-stress prompt + cooling · Pattern detection + reminder · Save? with optional name + age range · Privacy & Safety screen with Delete Everything · Help request via SMS with consent · Battery alerts · Demo source with visible label · Encrypted local storage + auto-delete.
+Language + voice · Welcome · Connect with fit indicator · Learn Your Calm · Home with live Calm meter + graph · High-stress prompt + cooling · Pattern detection + reminder · Save? with optional name + age range · Privacy & Safety screen with Delete Everything · Help request via SMS with consent · Battery alerts · Demo source with visible label · Encrypted local storage + auto-delete · PMDD-aware cooling (opt-in) with the daily check-in (added 2026-11-17, `03` Flows 19–20).
 
 ### 10.2 Explicitly Deferred
-- Cycle-day marker (🟡 see 13) · HRV sensor support · Skin/ambient temperature sensor in the tarha (🟡) · Export data for research (would need its own consent design) · iOS background monitoring parity · Wear OS / smartwatch.
+- HRV sensor support · Skin/ambient temperature sensor in the tarha (🟡) · Export data for research (would need its own consent design) · iOS background monitoring parity · Wear OS / smartwatch.
 
 ### 10.3 Permanently Excluded
 Cloud sync · accounts · GPS · employer dashboards · ads · diagnosis.
@@ -264,7 +264,7 @@ Cloud sync · accounts · GPS · employer dashboards · ads · diagnosis.
 ## 13. Open Questions (team decision needed)
 1. 🟡 **Auto-cool default** — "Ask me first" (current default) vs "Cool automatically".
 2. 🟡 **Name** — "Calm level" vs keeping "Brain Energy" (one direction only).
-3. 🟡 **Cycle marker** — a local-only, opt-in "my period started" button would let the team study the heat × PMDD question. It's sensitive data; deferred until a consent and research-ethics plan exists.
+3. ✅ **Cycle marker** — decided 2026-11-17: built as opt-in **PMDD-aware cooling**. She logs day 1 of her period (or corrects her phase); the app follows menstrual / follicular / ovulatory / early & late luteal phases and offers cooling sooner in the late luteal and first menstrual days (`07` §10). Only the latest 6 day-1 dates are kept (`05` §2.9); a 3-question evening check-in is kept ≤ 7 days like minute data (`05` §2.10). 🟡 A consent and research-ethics plan is still required before field sessions use it (`10` §6).
 4. 🟡 **Temperature sensor** — a cheap skin/ambient thermistor in the tarha would add the *heat* half of the research question. Recommended for the hardware diagram; app support is small (`07` reserves the field).
 5. 🟡 **Ethiopia language set** — Amharic only, or also Afaan Oromo / Tigrinya?
 

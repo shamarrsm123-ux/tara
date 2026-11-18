@@ -55,7 +55,7 @@ Same-level conflict → stop and ask the team.
 
 ## 4. No Speculative Features
 
-Do not add, however small or well-meant: accounts or login · cloud backup or sync · analytics, telemetry, crash reporting · GPS or maps · AI chat or "insights" text · gamification, streaks, badges · social or sharing features · cycle tracking (deferred, needs ethics plan) · HRV or watch integration (deferred) · data export · employer/NGO dashboards · a server "just for updates".
+Do not add, however small or well-meant: accounts or login · cloud backup or sync · analytics, telemetry, crash reporting · GPS or maps · AI chat or "insights" text · gamification, streaks, badges · social or sharing features · cycle tracking beyond the opt-in day-1 dates and daily check-in of `03` Flows 19–20 (decision 2026-11-17) · HRV or watch integration (deferred) · data export · employer/NGO dashboards · a server "just for updates".
 
 If it's not in `01`–`07`, it isn't built.
 

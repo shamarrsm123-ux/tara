@@ -24,7 +24,8 @@ Brain data is among the most intimate data a person has. TARA's approach is not 
 | Electrode signal | Raw EEG | Inside the tarha's chip only, milliseconds |
 | Over Bluetooth | 3 band powers + fit + temp + flags, 1/s | Encrypted BLE link; not stored by the tarha |
 | Phone memory | Per-second stress & Calm | ~10 min ring buffer, RAM only |
-| Phone disk (encrypted) | 1 summary per minute + events | ≤ 7 days (she can choose 1 or 3) |
+| Phone disk (encrypted) | 1 summary per minute + events + evening check-in (opt-in) | ≤ 7 days (she can choose 1 or 3) |
+| Phone disk (encrypted) | Day-1 dates of her period (opt-in, PMDD-aware cooling) | Latest 6 only; "Forget my cycle dates" or Delete Everything removes them |
 | Anywhere else | Nothing | — |
 
 ---
@@ -37,6 +38,7 @@ Brain data is among the most intimate data a person has. TARA's approach is not 
 | P2 | Processed on the phone only | Engine is local TS; no remote model |
 | P3 | Encrypted | SQLCipher DB; key in Keystore/Keychain; `secure_delete` on |
 | P4 | Auto-delete ≤ 7 days | Retention job (start, hourly, midnight); DB CHECK `retention_days <= 7`; tests with fake clock |
+| P4a | Cycle dates are minimal | Opt-in; dates only (no flow, pain or mood); at most 6 rows (DB trigger); never in a notification; deleted with everything else |
 | P5 | Delete Everything | Key deletion (crypto-shred) → file deletion → verification |
 | P6 | Nothing saved during Try unless she says Yes | Store not created until `createFromTrySession` |
 | P7 | No location tracking | No location API calls (lint rule bans imports); Android ≤11 permission handled per §4 |
@@ -93,7 +95,7 @@ Brain data is among the most intimate data a person has. TARA's approach is not 
 TARA's research question involves PMDD — reproductive and mental-health information. For any testing with real participants:
 - Use a written + spoken consent process in the participant's language, approved by a supervisor/ethics contact.
 - Testing data stays on the test phone, follows the same 7-day rule, and is not exported by the app. Any research data collection (e.g., comfort surveys) happens on paper or a separate, consented instrument.
-- No cycle data is collected by the app in this version (`02` §13).
+- Since 2026-11-17 the app can hold opt-in cycle dates and a daily check-in (`03` Flows 19–20). 🟡 Before any field session turns this on, the consent process must name both explicitly, and the ethics contact must approve it.
 
 ---
 

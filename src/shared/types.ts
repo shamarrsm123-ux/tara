@@ -59,6 +59,10 @@ export interface Settings {
   theme: 'sun' | 'night' | 'auto';
   /** 🟡 Screen 4 answer: may TARA offer reminders when it finds a pattern? (03 Flow 4 step 2; column added to 05 §2.2) */
   patternOffers: boolean;
+  /** Cycle-aware (PMDD-aware) cooling, opt-in (07 §10, 03 Flow 19). */
+  cycleAware: boolean;
+  /** Her usual cycle length, 21–45 days; used until real day-1 dates teach the app (07 §10.1). */
+  cycleLengthDays: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -72,6 +76,8 @@ export const DEFAULT_SETTINGS: Settings = {
   appLock: false,
   theme: 'sun',
   patternOffers: true,
+  cycleAware: false,
+  cycleLengthDays: 28,
 };
 
 /** Event types (05 §2.5). */
@@ -134,6 +140,8 @@ export const VOICE_LINE_IDS = [
   'deletedAll',
   'patternOffer',
   'reminderNow',
+  'cycleHeadsUp',
+  'checkInQuestion',
 ] as const;
 export type VoiceLineId = (typeof VOICE_LINE_IDS)[number];
 

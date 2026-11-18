@@ -1,14 +1,17 @@
 // Memory-only Store for the web preview (dev tool, 08): same contract and validation as the encrypted store
 // (checked by the shared contract suite), but nothing touches disk and everything is gone on reload.
 import { TaraError } from '../shared/errors';
-import { CONTACT_LIMIT, type BaselineRecord, type Contact, type EventRow, type MinuteRow, type PairedTarha, type PatternRow, type PlainPrefs, type Profile, type Store } from '../shared/storePort';
+import { mergeCycleStart } from '../engine/cycle';
+import { CONTACT_LIMIT, type BaselineRecord, type CheckInRow, type Contact, type CycleStartRow, type EventRow, type MinuteRow, type PairedTarha, type PatternRow, type PlainPrefs, type Profile, type Store } from '../shared/storePort';
 import { DEFAULT_SETTINGS, LANGS, type Settings } from '../shared/types';
 import {
   normalizeDisplayName,
   retentionCutoff,
   validateAgeGroup,
   validateBaseline,
+  validateCheckIn,
   validateContact,
+  validateCycleStart,
   validateEvent,
   validateMinute,
   validatePattern,
@@ -25,6 +28,8 @@ interface Data {
   contacts: readonly Contact[];
   paired: PairedTarha | null;
   nextContactId: number;
+  cycleStarts: readonly CycleStartRow[];
+  checkIns: readonly CheckInRow[];
 }
 
 export function createMemoryStore(now: () => number = Date.now): Store {
@@ -53,7 +58,9 @@ export function createMemoryStore(now: () => number = Date.now): Store {
     const cutoff = retentionCutoff(now(), d.settings.retentionDays);
     const minutes = d.minutes.filter((m) => m.tsMinute >= cutoff);
     const events = d.events.filter((e) => e.ts >= cutoff);
-    return { next: { ...d, minutes, events }, deletedRows: d.minutes.length - minutes.length + d.events.length - events.length };
+    const checkIns = d.checkIns.filter((c) => c.dayMs >= cutoff);
+    const deletedRows = d.minutes.length - minutes.length + d.events.length - events.length + d.checkIns.length - checkIns.length;
+    return { next: { ...d, minutes, events, checkIns }, deletedRows };
   };
 
   return {
@@ -75,6 +82,8 @@ export function createMemoryStore(now: () => number = Date.now): Store {
         contacts: [],
         paired: null,
         nextContactId: 1,
+        cycleStarts: [],
+        checkIns: [],
       };
       prefs = { hasCompletedSetup: true, language: input.lang };
     },
@@ -142,6 +151,18 @@ export function createMemoryStore(now: () => number = Date.now): Store {
 
     setPairedTarha: (tarha) => write((d) => ({ ...d, paired: tarha })),
     getPairedTarha: () => read((d) => d.paired),
+
+    addCycleStart(start) {
+      const valid = validateCycleStart(start, now());
+      return write((d) => ({ ...d, cycleStarts: mergeCycleStart(d.cycleStarts, valid) }));
+    },
+    listCycleStarts: () => read((d) => [...d.cycleStarts]),
+    clearCycleStarts: () => write((d) => ({ ...d, cycleStarts: [] })),
+    saveCheckIn(row) {
+      const valid = validateCheckIn(row, now());
+      return write((d) => ({ ...d, checkIns: [...d.checkIns.filter((c) => c.dayMs !== valid.dayMs), valid].toSorted((a, b) => a.dayMs - b.dayMs) }));
+    },
+    queryCheckIns: (from, to) => read((d) => d.checkIns.filter((c) => c.dayMs >= from && c.dayMs < to)),
 
     runRetention: () =>
       read((d) => {

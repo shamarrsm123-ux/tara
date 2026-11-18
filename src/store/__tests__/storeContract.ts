@@ -142,6 +142,51 @@ export function describeStoreContract(name: string, make: () => Harness): void {
       expect(await store.getPairedTarha()).toBeNull();
     });
 
+    test('cycle: day-1 dates — same day once, a date within 15 days corrects the latest, only 6 kept, never in the future', async () => {
+      const { store } = make();
+      await store.createFromTrySession(TRY_INPUT);
+      const day = (n: number) => new Date(2026, 10, 16 - n).getTime();
+      await store.addCycleStart({ dayMs: day(3), isEstimated: false });
+      await store.addCycleStart({ dayMs: day(3), isEstimated: false });
+      expect(await store.listCycleStarts()).toEqual([{ dayMs: day(3), isEstimated: false }]);
+      await store.addCycleStart({ dayMs: day(5), isEstimated: false }); // "it actually started 2 days earlier"
+      expect(await store.listCycleStarts()).toEqual([{ dayMs: day(5), isEstimated: false }]);
+      for (const n of [40, 70, 100, 130, 160, 190]) await store.addCycleStart({ dayMs: day(n), isEstimated: false });
+      const kept = await store.listCycleStarts();
+      expect(kept).toHaveLength(6);
+      expect(kept.at(-1)).toEqual({ dayMs: day(5), isEstimated: false });
+      expect(() => store.addCycleStart({ dayMs: T0 + 2 * DAY, isEstimated: false })).toThrow();
+      await store.clearCycleStarts();
+      expect(await store.listCycleStarts()).toEqual([]);
+    });
+
+    test('cycle settings: opt-in, length 21–45 only', async () => {
+      const { store } = make();
+      await store.createFromTrySession(TRY_INPUT);
+      expect(await store.getSettings()).toMatchObject({ cycleAware: false, cycleLengthDays: 28 });
+      await store.updateSettings({ cycleAware: true, cycleLengthDays: 32 });
+      expect(await store.getSettings()).toMatchObject({ cycleAware: true, cycleLengthDays: 32 });
+      expect(() => store.updateSettings({ cycleLengthDays: 20 })).toThrow();
+      expect(() => store.updateSettings({ cycleLengthDays: 46 })).toThrow();
+    });
+
+    test('check-in: one per day (answering again replaces it), levels 0–2 only, deleted by retention', async () => {
+      const h = make();
+      await h.store.createFromTrySession(TRY_INPUT);
+      const today = new Date(2026, 10, 16).getTime();
+      await h.store.saveCheckIn({ dayMs: today - DAY, mood: 2, irritability: 1, body: 0 });
+      await h.store.saveCheckIn({ dayMs: today, mood: 0, irritability: 0, body: 1 });
+      await h.store.saveCheckIn({ dayMs: today, mood: 1, irritability: 2, body: 1 });
+      expect(await h.store.queryCheckIns(0, Number.MAX_SAFE_INTEGER)).toEqual([
+        { dayMs: today - DAY, mood: 2, irritability: 1, body: 0 },
+        { dayMs: today, mood: 1, irritability: 2, body: 1 },
+      ]);
+      expect(() => h.store.saveCheckIn({ dayMs: today, mood: 3 as never, irritability: 0, body: 0 })).toThrow();
+      h.setNow(T0 + 8 * DAY);
+      await h.store.runRetention();
+      expect(await h.store.queryCheckIns(0, Number.MAX_SAFE_INTEGER)).toEqual([]);
+    });
+
     test('Delete Everything returns to a fresh install; writes during the wipe reject with WIPING; idempotent', async () => {
       const { store } = make();
       await store.createFromTrySession(TRY_INPUT);

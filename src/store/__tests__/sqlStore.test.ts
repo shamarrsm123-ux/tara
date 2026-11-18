@@ -66,6 +66,30 @@ describe('SQL store — files on disk (12 §4)', () => {
     expect(await reopened.getBaseline()).toEqual(TRY_INPUT.baseline);
   });
 
+  test('a v1 database is upgraded to v2 in place, keeping her data (05 §5)', async () => {
+    const deps = makeTestDeps(T0);
+    const first = createSqlStore(deps);
+    await first.createFromTrySession(TRY_INPUT);
+    await first.setDisplayName('Amira');
+    const db = rawDb(deps.dbPath);
+    db.exec('DROP TABLE check_in; DROP TABLE cycle_start; ALTER TABLE settings DROP COLUMN cycle_length_days; ALTER TABLE settings DROP COLUMN cycle_aware; PRAGMA user_version = 1;');
+    db.close();
+    const upgraded = createSqlStore(deps);
+    expect((await upgraded.getProfile()).displayName).toBe('Amira');
+    expect(await upgraded.getSettings()).toMatchObject({ cycleAware: false, cycleLengthDays: 28 });
+    expect(await upgraded.listCycleStarts()).toEqual([]);
+  });
+
+  test('the database itself keeps at most 6 cycle starts and rejects bad check-in levels', async () => {
+    const deps = makeTestDeps(T0);
+    await createSqlStore(deps).createFromTrySession(TRY_INPUT);
+    const db = rawDb(deps.dbPath);
+    db.exec('INSERT INTO cycle_start (day_ms, is_estimated) VALUES (1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0);');
+    expect(db.prepare('SELECT COUNT(*) AS n FROM cycle_start;').get()).toEqual({ n: 6 });
+    expect(() => db.exec('INSERT INTO check_in (day_ms, mood, irritability, body) VALUES (1, 5, 0, 0);')).toThrow(/CHECK/);
+    db.close();
+  });
+
   test('a database from a newer app version is refused, not overwritten (05 §5)', async () => {
     const deps = makeTestDeps(T0);
     await createSqlStore(deps).createFromTrySession(TRY_INPUT);

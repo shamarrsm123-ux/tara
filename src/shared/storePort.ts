@@ -59,6 +59,30 @@ export interface PatternRow {
   reminderNotificationId: string | null;
 }
 
+/** A logged day 1 (05 §2.9). Only dates — never symptoms — and at most the latest 6. */
+export interface CycleStartRow {
+  /** Local midnight of day 1. */
+  dayMs: number;
+  /** Implied by "correct my phase" rather than logged as a real day 1. */
+  isEstimated: boolean;
+}
+
+/** Daily check-in answers (05 §2.10): 0 = fine, 1 = some, 2 = a lot. */
+export type CheckInLevel = 0 | 1 | 2;
+export const CHECKIN_ITEMS = ['mood', 'irritability', 'body'] as const;
+export type CheckInItem = (typeof CHECKIN_ITEMS)[number];
+
+export interface CheckInRow {
+  /** Local midnight of the day she answered for. */
+  dayMs: number;
+  /** Low mood / sadness. */
+  mood: CheckInLevel;
+  /** Irritability / tension. */
+  irritability: CheckInLevel;
+  /** Body: tiredness, pain, heaviness. */
+  body: CheckInLevel;
+}
+
 export interface NewContact {
   name: string;
   phoneE164: string;
@@ -116,6 +140,14 @@ export interface Store {
   removeContact(id: number): Promise<void>;
   setPairedTarha(tarha: PairedTarha | null): Promise<void>;
   getPairedTarha(): Promise<PairedTarha | null>;
+  /** Logs a day 1; see mergeCycleStart (correction window, latest 6). Future dates → VALIDATION_ERROR. */
+  addCycleStart(start: CycleStartRow): Promise<void>;
+  listCycleStarts(): Promise<CycleStartRow[]>;
+  /** Removes every logged day 1. */
+  clearCycleStarts(): Promise<void>;
+  /** One check-in per day; answering again replaces it. Deleted by retention like minute summaries. */
+  saveCheckIn(row: CheckInRow): Promise<void>;
+  queryCheckIns(fromMs: number, toMs: number): Promise<CheckInRow[]>;
   runRetention(): Promise<{ deletedRows: number }>;
   /** 05 §4 steps 2–4 (the app does step 1 first). Idempotent; other writes reject with WIPING meanwhile. */
   wipeEverything(): Promise<void>;

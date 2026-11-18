@@ -275,6 +275,25 @@ Language · Speak automatically (on/off) · Cooling: Ask me first / Cool automat
 
 ---
 
+## Flow 19 — PMDD-Aware Cooling (opt-in, decision 2026-11-17)
+
+1. Settings → **PMDD-aware cooling**: "Many women feel heat and stress more in the days before their period, especially with PMDD. If you log day 1 of your period, TARA follows your cycle and offers cooling sooner on those days. Only the dates are kept — the last 6 — encrypted on this phone." On / Off (default Off).
+2. On: she sets her usual cycle length (21–45 days, default 28). Once real day-1 dates exist, TARA shows "From your dates, your cycle is about N days."
+3. Home shows a cycle card: before any date, "Tap the day your period starts, so TARA can follow your cycle." Buttons: **My period started today** · **It started earlier** (Yesterday … 7 days ago).
+4. With a date: the phase name (menstrual / follicular / ovulatory / early luteal / late luteal), "Day N of about L", and what TARA does today — late luteal and first menstrual days: "PMDD-aware cooling is on: TARA offers cooling sooner today."; early luteal: "Your body runs a little warmer in this phase, so TARA offers cooling a little sooner."; otherwise "Cooling works as usual today." (`07` §10).
+5. The day before the late luteal phase: "Your late luteal days start tomorrow. TARA will offer cooling sooner for about a week." Past the expected day 1: "Your period is later than expected. Tap the button when it starts."
+6. Settings → "Not right? I am in my…" + the five phases: today becomes the first day of that phase. **Forget my cycle dates** removes them. Turning it Off keeps the dates; Delete Everything removes them.
+7. Nothing about the cycle is ever in a notification. Not available in Try mode (nothing is saved there).
+
+## Flow 20 — Daily Check-in (with PMDD-aware cooling)
+
+1. From 6 PM, once a day, Home shows **"How was today?"** with ▶ voice.
+2. Three questions, three answers each (Not at all / A little / A lot): **Low or sad** · **Irritable or tense** · **Body: tired, pain or heavy**.
+3. **Save** (enabled once all three are answered) → "Thank you. Saved for today." **Later** hides it until tomorrow. Answering again the same day replaces the answers.
+4. My Days shows, for the chosen day, its phase and the three answers. Check-ins follow the same auto-delete as minute data.
+
+---
+
 ## 19. Consolidated Edge Cases
 
 - **She says No to Save, then reopens TARA:** starts fresh at Flow L; no trace remains.
