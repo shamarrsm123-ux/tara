@@ -26,6 +26,9 @@ export interface Reminders {
   dismissFaded(): void;
   dismissDue(): void;
   refresh(): void;
+  /** Accepted patterns with a daily reminder (Settings → Reminders). */
+  accepted: readonly StoredPattern[];
+  turnOff(slot: number): void;
 }
 
 const minuteNow = (nowMs: number) => {
@@ -81,7 +84,7 @@ export function useReminders(store: Store, notifier: Notifier | null, isActive: 
     })();
   };
   const decline = (slot: number) => {
-    void save(patterns.map((p) => (p.slotStartMin === slot ? { ...p, status: 'declined', declinedUntil: Date.now() + PATTERN_DECLINE_DAYS * DAY_MS } : p)));
+    void save(patterns.map((p) => (p.slotStartMin === slot ? { ...p, status: 'declined', declinedUntil: Date.now() + PATTERN_DECLINE_DAYS * DAY_MS, reminderNotificationId: null } : p)));
   };
 
   const offer = patterns.find((p) => p.status === 'offered');
@@ -98,6 +101,12 @@ export function useReminders(store: Store, notifier: Notifier | null, isActive: 
     dismissFaded: () => setFadedSlot(null),
     dismissDue: () => setDismissedDay(dayKey(nowMs)),
     refresh: () => void refresh(),
+    accepted: isActive ? patterns.filter((p) => p.status === 'accepted') : [],
+    turnOff: (slot) => {
+      const target = patterns.find((p) => p.slotStartMin === slot);
+      if (target?.reminderNotificationId != null) void notifier?.cancel(target.reminderNotificationId).catch(() => undefined);
+      decline(slot);
+    },
   };
 }
 

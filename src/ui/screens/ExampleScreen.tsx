@@ -12,7 +12,7 @@ import { ScreenFrame } from '../components/ScreenFrame';
 import { Card, Tag } from '../components/Surface';
 import { useUi } from '../theme/UiProvider';
 import { SPACE } from '../theme/tokens';
-import { playVoice } from '../voice/player';
+import { playAutoVoice } from '../voice/player';
 import { meterStatusFor } from './HomeScreen';
 
 interface ExampleScreenProps {
@@ -60,7 +60,7 @@ export function ExampleScreen({ snapshot, demo, answer, onAnswer, onNext, onBack
   const { t, palette, lang } = useUi();
   const isAnswered = answer !== null;
   useEffect(() => {
-    if (isAnswered) playVoice(lang, 'brainCalm');
+    if (isAnswered) playAutoVoice(lang, 'brainCalm');
   }, [isAnswered, lang]);
 
   return (

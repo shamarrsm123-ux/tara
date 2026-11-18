@@ -2,7 +2,7 @@
 // rows: delete-after (shorter only), "No internet used ✓" (tap for why), then Delete Everything; then the
 // optional General place card. Before saving (Try mode) only the true statements are shown — there is nothing
 // to shorten or delete yet. Family (Flow 10): on Screen 6 a 100%-optional Yes/No card, in the tab the family list.
-// 🟡 The Lock card (Phase 11) joins when App Lock exists, so no Yes button here promises something the build can't do.
+// Lock TARA (Flow 17) uses the phone's own screen lock. The tab also holds Settings (Flow 16).
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DEFAULT_SETTINGS, type Settings } from '../../shared/types';
@@ -16,6 +16,8 @@ import { useUi } from '../theme/UiProvider';
 import { SPACE, TOUCH_MIN } from '../theme/tokens';
 import { DeleteEverything, PlaceCard, ShorterRetention, useRetentionLabel } from './SafetySections';
 import { FamilySection, type FamilyTools } from './FamilySection';
+import { LockCard, type LockTools } from './LockCard';
+import { SettingsSection, type SettingsTools } from './SettingsSection';
 import { DecisionCard } from '../components/DecisionCard';
 
 export interface SavedSafety {
@@ -23,6 +25,9 @@ export interface SavedSafety {
   onSettings: (patch: Partial<Settings>) => void;
   onDeleteEverything: () => void;
   family?: FamilyTools;
+  lock?: LockTools;
+  /** Settings (03 Flow 16) — shown in the Safety tab, not on Screen 6. */
+  settingsTools?: SettingsTools;
 }
 
 interface SafetyScreenProps {
@@ -124,6 +129,8 @@ export function SafetyScreen({ demo, saved, onDone }: SafetyScreenProps) {
           onChange={(isEnabled, labels) => saved.onSettings({ placeLabelsEnabled: isEnabled, enabledPlaceLabels: labels })}
         />
       )}
+      {saved?.lock !== undefined && <LockCard {...saved.lock} />}
+      {saved !== null && saved.settingsTools !== undefined && !isStory && <SettingsSection settings={saved.settings} onSettings={saved.onSettings} {...saved.settingsTools} />}
     </ScreenFrame>
   );
 }

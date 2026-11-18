@@ -2,7 +2,7 @@
 // (checked by the shared contract suite), but nothing touches disk and everything is gone on reload.
 import { TaraError } from '../shared/errors';
 import { CONTACT_LIMIT, type BaselineRecord, type Contact, type EventRow, type MinuteRow, type PairedTarha, type PatternRow, type PlainPrefs, type Profile, type Store } from '../shared/storePort';
-import { DEFAULT_SETTINGS, type Settings } from '../shared/types';
+import { DEFAULT_SETTINGS, LANGS, type Settings } from '../shared/types';
 import {
   normalizeDisplayName,
   retentionCutoff,
@@ -89,6 +89,13 @@ export function createMemoryStore(now: () => number = Date.now): Store {
       return write((d) => ({ ...d, profile: { ...d.profile, ageGroup } }));
     },
 
+    setLanguage(lang) {
+      if (!LANGS.includes(lang)) throw new TaraError('VALIDATION_ERROR', 'language');
+      return write((d) => {
+        prefs = { hasCompletedSetup: true, language: lang };
+        return { ...d, profile: { ...d.profile, language: lang } };
+      });
+    },
     getSettings: () => read((d) => d.settings),
     updateSettings(patch) {
       const valid = validateSettingsPatch(patch);

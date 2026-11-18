@@ -17,7 +17,7 @@ import type {
   Store,
   TrySessionInput,
 } from '../shared/storePort';
-import { DEFAULT_SETTINGS, type Lang, type Settings } from '../shared/types';
+import { DEFAULT_SETTINGS, LANGS, type Lang, type Settings } from '../shared/types';
 import { MIGRATIONS, SCHEMA_VERSION } from './schema';
 import {
   normalizeDisplayName,
@@ -283,6 +283,14 @@ export function createSqlStore(deps: SqlStoreDeps): Store {
     setAgeGroup(group) {
       const value = validateAgeGroup(group);
       return op(async (c) => void (await c.run('UPDATE profile SET age_group = ? WHERE id = 1;', [value])));
+    },
+
+    setLanguage(lang) {
+      if (!LANGS.includes(lang)) throw new TaraError('VALIDATION_ERROR', 'language');
+      return op(async (c) => {
+        await c.run('UPDATE profile SET language = ? WHERE id = 1;', [lang]);
+        await prefs.write({ hasCompletedSetup: true, language: lang });
+      });
     },
 
     getSettings: () => op(readSettings),

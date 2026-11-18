@@ -22,3 +22,10 @@ jest.mock('expo-sms', () => ({
   isAvailableAsync: jest.fn(async () => true),
   sendSMSAsync: jest.fn(async () => ({ result: 'unknown' })),
 }));
+
+// Phone unlock under Jest: a screen lock is set and unlocking succeeds unless a test changes it.
+jest.mock('expo-local-authentication', () => ({
+  SecurityLevel: { NONE: 0, SECRET: 1, BIOMETRIC_WEAK: 2, BIOMETRIC_STRONG: 3 },
+  getEnrolledLevelAsync: jest.fn(async () => 1),
+  authenticateAsync: jest.fn(async () => ({ success: true })),
+}));

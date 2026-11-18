@@ -10,7 +10,7 @@ import { IconBack } from '../icons/Icons';
 import { useUi } from '../theme/UiProvider';
 import { SPACE, TOUCH_MIN, type BackdropMood } from '../theme/tokens';
 import { AppText } from './AppText';
-import { playVoice } from '../voice/player';
+import { playAutoVoice } from '../voice/player';
 import { DemoRibbon } from './DemoRibbon';
 import { VoiceButton } from './VoiceButton';
 
@@ -52,7 +52,7 @@ export function ScreenFrame({ children, footer, voiceLine, shouldAutoPlay = true
   const { palette, lang } = useUi();
 
   useEffect(() => {
-    if (voiceLine !== undefined && shouldAutoPlay) playVoice(lang, voiceLine);
+    if (voiceLine !== undefined && shouldAutoPlay) playAutoVoice(lang, voiceLine);
   }, [voiceLine, lang, shouldAutoPlay]);
 
   return (

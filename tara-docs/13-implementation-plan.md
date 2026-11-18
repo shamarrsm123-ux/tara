@@ -107,6 +107,8 @@ The last document before code. Each phase has an objective, work, tests and acce
 
 **Acceptance:** each setting change is reflected in engine behavior immediately and survives restart.
 
+🟡 *Phase 11 notes (2026-11-17): Settings live in the Safety tab (language, speak automatically, cooling ask/auto, cooling length, alert sensitivity, Learn my calm again, reminders with Turn off, About & privacy); each change is saved and sent to the engine at once. App Lock (`expo-local-authentication`) uses the phone's own screen lock, shows a lock screen with nothing of hers behind it, and locks again when she leaves the app; with no screen lock it explains and offers phone settings. Battery and phone-battery alerts also appear as in-app cards with the full Flow 12 wording (the lock-screen text stays neutral). "Speak automatically" off silences voice lines that screens play by themselves; the ▶ button always plays.*
+
 ## Phase 12 — Voice & Localization Completion
 - Record final voice lines with native speakers (Egyptian Arabic, Amharic); review illustrations and copy with community members; RTL review.
 

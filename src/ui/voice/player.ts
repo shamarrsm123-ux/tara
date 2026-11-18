@@ -5,6 +5,17 @@ import type { Lang, VoiceLineId } from '../../shared/types';
 import { VOICE_ASSETS } from './lines';
 
 let current: AudioPlayer | null = null;
+/** Settings → "Speak automatically" (03 Flow 16). The ▶ button always plays; screens only speak on their own when on. */
+let isAutoSpeakOn = true;
+
+export function setAutoSpeak(isOn: boolean): void {
+  isAutoSpeakOn = isOn;
+}
+
+/** A line a screen plays by itself on first view — silent when she turned automatic speech off. */
+export function playAutoVoice(lang: Lang, line: VoiceLineId): boolean {
+  return isAutoSpeakOn ? playVoice(lang, line) : false;
+}
 
 export function stopVoice(): void {
   current?.remove();

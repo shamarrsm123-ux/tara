@@ -97,6 +97,8 @@ export interface Store {
   getProfile(): Promise<Profile>;
   setDisplayName(name: string | null): Promise<void>;
   setAgeGroup(group: AgeGroup | null): Promise<void>;
+  /** Settings → Language: profile and the plain launch preference (05 §1). */
+  setLanguage(lang: Lang): Promise<void>;
   getSettings(): Promise<Settings>;
   /** retention > 7 → VALIDATION_ERROR. */
   updateSettings(patch: Partial<Settings>): Promise<void>;

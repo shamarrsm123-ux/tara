@@ -10,7 +10,7 @@ import { ScreenFrame } from '../components/ScreenFrame';
 import { useUi } from '../theme/UiProvider';
 import { BREATHE_IN_MS, BREATHE_OUT_MS, SPACE, TOUCH_MIN } from '../theme/tokens';
 import { useReduceMotion } from '../theme/useReduceMotion';
-import { playVoice } from '../voice/player';
+import { playAutoVoice } from '../voice/player';
 
 interface CalibrateScreenProps {
   snapshot: MonitorSnapshot | null;
@@ -49,7 +49,7 @@ export function CalibrateScreen({ snapshot, isDemo, onSkip, onBack }: CalibrateS
   }, [isInhale, isDone, isReducedMotion, scale]);
 
   useEffect(() => {
-    if (isDone) playVoice(lang, 'calibrateDone');
+    if (isDone) playAutoVoice(lang, 'calibrateDone');
   }, [isDone, lang]);
 
   const progress = calibration?.progress ?? 0;

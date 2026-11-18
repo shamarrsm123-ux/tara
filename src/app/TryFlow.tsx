@@ -14,7 +14,7 @@ import { buildHelpMessage, buildTestMessage } from '../sos/message';
 import type { HelpTools } from '../ui/screens/HelpFlow';
 import type { FamilyTools } from '../ui/screens/FamilySection';
 import type { FoundTarha } from '../shared/tarhaSource';
-import type { Settings } from '../shared/types';
+import type { Settings, NotifyKind } from '../shared/types';
 import { playHaptic } from '../ui/haptics';
 import { CalibrateScreen } from '../ui/screens/CalibrateScreen';
 import { ConnectScreen } from '../ui/screens/ConnectScreen';
@@ -29,12 +29,17 @@ import { WelcomeScreen } from '../ui/screens/WelcomeScreen';
 import { UiProvider } from '../ui/theme/UiProvider';
 import { CALIBRATION_DONE_PAUSE_MS } from '../ui/theme/tokens';
 import { translatorFor } from '../ui/i18n';
-import { playVoice } from '../ui/voice/player';
+import { playVoice, setAutoSpeak } from '../ui/voice/player';
 import { createBluetooth } from '../ble/createTarhaSource';
 import { systemClock } from '../shared/clock';
 import { createDemoRuntime, createTarhaRuntime, discardRuntime, type Runtime } from './runtime';
 import { useConnect } from './useConnect';
 import { useDailyServices } from './useDailyServices';
+import { useAppLock } from './useAppLock';
+import { LockScreen } from '../ui/screens/LockScreen';
+import { Button } from '../ui/components/Button';
+import { Card } from '../ui/components/Surface';
+import { AppText } from '../ui/components/AppText';
 import { timeOfDayMs, useReminders } from './useReminders';
 import { reminderMinuteFor } from '../patterns/plan';
 import { PatternCards } from '../ui/components/PatternCards';
@@ -66,6 +71,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [batteryAlert, setBatteryAlert] = useState<NotifyKind | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [hasStoryAction, setHasStoryAction] = useState(false);
@@ -86,6 +92,7 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   }, [isSetUp, isRealTarha]);
   usePersistence(store, runtime?.session ?? null, isSetUp && isRealTarha);
   const isDaily = isSetUp && state.screen === 'daily';
+  const appLock = useAppLock(store, settings, setSettings, translatorFor(lang)('lock.prompt'));
   const history = useDailyServices(store, notifier, runtime?.session ?? null, isDaily);
   const reminders = useReminders(store, notifier, isDaily, snapshot?.nowMs ?? 0);
   useEffect(() => {
@@ -96,10 +103,19 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     (action: EngineAction) => {
       if (action.a === 'speak') playVoice(lang, action.line);
       if (action.a === 'haptic') playHaptic(action.pattern);
+      // 03 Flow 12: battery alerts are also shown in the app with their full wording.
+      if (action.a === 'notify' && action.kind !== 'coolBreak' && action.kind !== 'helpQuestion' && action.kind !== 'reminder') setBatteryAlert(action.kind);
       // Lock-screen notification only when she isn't looking at the app; the full card is in the app (02 §8.13).
       if (action.a === 'notify' && AppState.currentState !== 'active') void notifierRef.current?.show(action.kind).catch(() => undefined);
       if (action.a === 'logEvent' && isPersistingRef.current) {
-        void store.appendEvent({ ts: Date.now(), type: action.type, source: action.source ?? null, origin: 'tarha' }).catch(() => undefined);
+        void store
+          .appendEvent({
+            ts: Date.now(),
+            type: action.type,
+            source: action.source ?? null,
+            origin: 'tarha',
+          })
+          .catch(() => undefined);
       }
     },
     [lang, store],
@@ -143,12 +159,31 @@ export function TryFlow({ store, initial }: TryFlowProps) {
     if (!isSetUp || settings !== null) return;
     void store.getSettings().then(setSettings, () => undefined);
     void store.listContacts().then(setContacts, () => undefined);
-    void store.getProfile().then((p) => setProfileName(p.displayName), () => undefined);
+    void store.getProfile().then(
+      (p) => setProfileName(p.displayName),
+      () => undefined,
+    );
   }, [isSetUp, settings, store]);
 
   useEffect(() => {
-    if (state.screen === 'calibrate') runtime?.session.startCalibration();
+    if (state.screen === 'calibrate' || state.screen === 'recalibrate') runtime?.session.startCalibration();
   }, [state.screen, runtime]);
+
+  // Saved settings drive the engine and automatic speech immediately (03 Flow 16, 13 Phase 11).
+  useEffect(() => {
+    if (settings === null) return;
+    setAutoSpeak(settings.speakAutomatically);
+    runtime?.session.dispatch({ t: 'settings', settings });
+  }, [settings, runtime]);
+
+  // "Learn my calm again": the new baseline replaces the old one in the store (05 §2.3).
+  const isRecalibrated = state.screen === 'recalibrate' && snapshot?.calibration?.isDone === true;
+  useEffect(() => {
+    if (!isRecalibrated || snapshotRef.current === null) return undefined;
+    void store.replaceBaseline(snapshotRef.current.baseline).catch(() => undefined);
+    const id = setTimeout(() => dispatch({ type: 'recalibrated' }), CALIBRATION_DONE_PAUSE_MS);
+    return () => clearTimeout(id);
+  }, [isRecalibrated, store]);
 
   const isCalibrated = state.screen === 'calibrate' && snapshot?.calibration?.isDone === true;
   useEffect(() => {
@@ -239,7 +274,14 @@ export function TryFlow({ store, initial }: TryFlowProps) {
             const result = await openComposer(c.phoneE164, message);
             // 03 Flow 11 step 6: only "help request opened" + time — no number, no place. Never from demo data.
             if (result === 'opened' && runtime !== null && runtime.demo === null) {
-              void store.appendEvent({ ts: Date.now(), type: 'help_opened_sms', source: null, origin: 'tarha' }).catch(() => undefined);
+              void store
+                .appendEvent({
+                  ts: Date.now(),
+                  type: 'help_opened_sms',
+                  source: null,
+                  origin: 'tarha',
+                })
+                .catch(() => undefined);
             }
             return result;
           },
@@ -253,11 +295,29 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           family,
           settings,
           onSettings: (patch) =>
-            void store.updateSettings(patch).then(async () => {
-              setSettings(await store.getSettings());
-              if (patch.retentionDays !== undefined) reminders.refresh(); // 05 §3: patterns recomputed after retention changes
-            }, () => undefined),
+            void store.updateSettings(patch).then(
+              async () => {
+                setSettings(await store.getSettings());
+                if (patch.retentionDays !== undefined) reminders.refresh(); // 05 §3: patterns recomputed after retention changes
+              },
+              () => undefined,
+            ),
           onDeleteEverything: () => void deleteEverything(),
+          lock: appLock.tools ?? undefined,
+          settingsTools: {
+            lang,
+            onLanguage: (l) =>
+              void store.setLanguage(l).then(
+                () => dispatch({ type: 'chooseLanguage', lang: l }),
+                () => undefined,
+              ),
+            onRecalibrate: () => dispatch({ type: 'recalibrate' }),
+            reminders: reminders.accepted.map((p) => ({
+              slotStartMin: p.slotStartMin,
+              reminderAtMs: timeOfDayMs(reminderMinuteFor(p.slotStartMin), snapshot?.nowMs ?? 0),
+            })),
+            onReminderOff: reminders.turnOff,
+          },
         }
       : null;
 
@@ -265,6 +325,16 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   const demo = runtime?.demo != null ? { isSpedUp: runtime.demo.scenario.isSpedUp } : null;
   const isStoryReady = state.lifecycle === 'trying' && hasStoryAction && snapshot !== null && !snapshot.engine.isPromptShowing;
   const t = translatorFor(lang);
+
+  // App Lock: nothing of hers is drawn until she unlocks; before settings load, draw nothing at all (no flash).
+  if (isSetUp && settings === null && notice === null) return null;
+  if (appLock.isLocked && notice === null) {
+    return (
+      <UiProvider lang={lang} theme="sun" style={styles.fill}>
+        <LockScreen onUnlock={appLock.unlock} />
+      </UiProvider>
+    );
+  }
 
   if (notice !== null) {
     return (
@@ -289,7 +359,11 @@ export function TryFlow({ store, initial }: TryFlowProps) {
   return (
     <UiProvider lang={lang} theme="sun" style={styles.fill}>
       {state.screen === 'language' && (
-        <LanguageScreen selected={state.lang} onSelect={(l) => dispatch({ type: 'chooseLanguage', lang: l })} onContinue={() => dispatch({ type: 'continue' })} />
+        <LanguageScreen
+          selected={state.lang}
+          onSelect={(l) => dispatch({ type: 'chooseLanguage', lang: l })}
+          onContinue={() => dispatch({ type: 'continue' })}
+        />
       )}
       {state.screen === 'welcome' && <WelcomeScreen onTry={() => dispatch({ type: 'tryToCalm' })} onBack={back} />}
       {state.screen === 'connect' && (
@@ -341,18 +415,28 @@ export function TryFlow({ store, initial }: TryFlowProps) {
           onHelpAnswer={(yes) => runtime.session.dispatch({ t: 'helpAnswer', yes })}
           homeBanner={
             isDaily ? (
-              <PatternCards
-                offerSlot={reminders.offerSlot}
-                dueSlot={reminders.dueSlot}
-                fadedSlot={reminders.fadedSlot}
-                needMoreDays={reminders.needMoreDays}
-                timeOf={(m) => timeOfDayMs(m, snapshot.nowMs)}
-                reminderOf={reminderMinuteFor}
-                onAccept={reminders.accept}
-                onDecline={reminders.decline}
-                onDismissDue={reminders.dismissDue}
-                onDismissFaded={reminders.dismissFaded}
-              />
+              <>
+                {batteryAlert !== null && (
+                  <Card tint="apricot" testID="battery-alert">
+                    <AppText variant="body" isBold>
+                      {t(BATTERY_TEXT[batteryAlert] ?? 'battery.low')}
+                    </AppText>
+                    <Button label={t('common.ok')} variant="outlined" tone="neutral" onPress={() => setBatteryAlert(null)} testID="battery-alert-ok" />
+                  </Card>
+                )}
+                <PatternCards
+                  offerSlot={reminders.offerSlot}
+                  dueSlot={reminders.dueSlot}
+                  fadedSlot={reminders.fadedSlot}
+                  needMoreDays={reminders.needMoreDays}
+                  timeOf={(m) => timeOfDayMs(m, snapshot.nowMs)}
+                  reminderOf={reminderMinuteFor}
+                  onAccept={reminders.accept}
+                  onDecline={reminders.decline}
+                  onDismissDue={reminders.dismissDue}
+                  onDismissFaded={reminders.dismissFaded}
+                />
+              </>
             ) : undefined
           }
           onBack={state.screen === 'home' ? back : undefined}
@@ -380,7 +464,13 @@ export function TryFlow({ store, initial }: TryFlowProps) {
             });
             const paired = pairedRef.current;
             // A real tarha is remembered so Daily mode reconnects to it; the demo tarha never is.
-            if (paired !== null && runtime?.demo === null) await store.setPairedTarha({ deviceId: paired.id, name: paired.name, firmware: '', pairedAt: Date.now() });
+            if (paired !== null && runtime?.demo === null)
+              await store.setPairedTarha({
+                deviceId: paired.id,
+                name: paired.name,
+                firmware: '',
+                pairedAt: Date.now(),
+              });
           }}
           onNothingSaved={resetToFresh}
           onName={(name) => store.setDisplayName(name)}
@@ -390,8 +480,16 @@ export function TryFlow({ store, initial }: TryFlowProps) {
         />
       )}
       {state.screen === 'privacy' && <SafetyScreen demo={demo} saved={saved} onDone={() => dispatch({ type: 'privacyDone' })} />}
+      {state.screen === 'recalibrate' && <CalibrateScreen snapshot={snapshot} isDemo={state.isDemo} onSkip={back} onBack={back} />}
     </UiProvider>
   );
 }
+
+const BATTERY_TEXT: Partial<Record<NotifyKind, 'battery.low' | 'battery.lock' | 'battery.off' | 'battery.phoneLow'>> = {
+  batteryLow: 'battery.low',
+  batteryLock: 'battery.lock',
+  batteryOff: 'battery.off',
+  phoneBatteryLow: 'battery.phoneLow',
+};
 
 const styles = StyleSheet.create({ fill: { flex: 1 } });

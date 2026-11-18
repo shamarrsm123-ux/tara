@@ -3,7 +3,7 @@
 // "No" and Delete Everything both return to a fresh install (`INITIAL_TRY`).
 import type { Lang } from '../shared/types';
 
-export type TryScreen = 'language' | 'welcome' | 'connect' | 'calibrate' | 'home' | 'example' | 'save' | 'privacy' | 'daily';
+export type TryScreen = 'language' | 'welcome' | 'connect' | 'calibrate' | 'home' | 'example' | 'save' | 'privacy' | 'daily' | 'recalibrate';
 export type Lifecycle = 'fresh' | 'trying' | 'setUp';
 
 export interface TryState {
@@ -31,6 +31,9 @@ export type TryAction =
   | { type: 'saved' }
   | { type: 'privacyDone' }
   | { type: 'reset' }
+  /** Settings → "Learn my calm again" (03 Flow 16) and its end. */
+  | { type: 'recalibrate' }
+  | { type: 'recalibrated' }
   | { type: 'back' };
 
 export const INITIAL_TRY: TryState = {
@@ -59,6 +62,7 @@ const BACK: Record<TryScreen, TryScreen | null> = {
   // Once saved there is no way back into the Try story.
   privacy: null,
   daily: null,
+  recalibrate: 'daily',
 };
 
 /** 03 §0.2: back is allowed on every Try screen (Screen 3's active cooling is handled by the container). */
@@ -94,6 +98,10 @@ export function reduceTry(state: TryState, action: TryAction): TryState {
       return state.screen === 'privacy' ? { ...state, screen: 'daily' } : state;
     case 'reset':
       return INITIAL_TRY;
+    case 'recalibrate':
+      return state.screen === 'daily' ? { ...state, screen: 'recalibrate' } : state;
+    case 'recalibrated':
+      return state.screen === 'recalibrate' ? { ...state, screen: 'daily' } : state;
     case 'back': {
       const previous = BACK[state.screen];
       return previous === null ? state : { ...state, screen: previous };

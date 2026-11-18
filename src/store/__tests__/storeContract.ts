@@ -72,6 +72,15 @@ export function describeStoreContract(name: string, make: () => Harness): void {
       expect(() => store.setAgeGroup('51_60' as never)).toThrow();
     });
 
+    test('language change updates the profile and the launch preference', async () => {
+      const { store } = make();
+      await store.createFromTrySession(TRY_INPUT);
+      await store.setLanguage('am_ET');
+      expect((await store.getProfile()).language).toBe('am_ET');
+      expect(await store.readPlainPrefs()).toEqual({ hasCompletedSetup: true, language: 'am_ET' });
+      expect(() => store.setLanguage('fr' as never)).toThrow();
+    });
+
     test('retention can never exceed 7 days', async () => {
       const { store } = make();
       await store.createFromTrySession(TRY_INPUT);
