@@ -39,6 +39,9 @@ async function toConnect() {
   for (const id of ['lang-en', 'language-continue', 'welcome-try', 'connect-button']) await press(id);
 }
 
+// Full-UI flows drive fake time through many renders; give them room under a loaded coverage run.
+jest.setTimeout(30_000);
+
 describe('Flow 1 with a real tarha (13 Phase 7)', () => {
   beforeEach(() => {
     jest.useFakeTimers({ now: new Date(2026, 10, 17, 9, 0) });

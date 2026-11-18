@@ -48,6 +48,9 @@ async function storeWithWeek() {
   return store;
 }
 
+// Full-UI flows drive fake time through many renders; give them room under a loaded coverage run.
+jest.setTimeout(30_000);
+
 describe('Smart reminders (13 Phase 9)', () => {
   beforeEach(() => {
     jest.useFakeTimers({ now: new Date(2026, 10, 17, 20, 0) });

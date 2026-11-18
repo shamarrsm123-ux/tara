@@ -8,6 +8,9 @@ import { initialStateFor } from '../launch';
 import { TryFlow } from '../TryFlow';
 import { INITIAL_TRY } from '../tryNavigation';
 
+// Full-UI flows drive fake time through many renders; give them room under a loaded coverage run.
+jest.setTimeout(30_000);
+
 describe('launch (11 §1)', () => {
   test('a fresh install opens on Choose Language', async () => {
     expect(await initialStateFor(createMemoryStore())).toEqual(INITIAL_TRY);

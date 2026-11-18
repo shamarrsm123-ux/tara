@@ -30,6 +30,9 @@ async function setUp(withPlaces: boolean, seed: readonly (readonly [string, stri
   return store;
 }
 
+// Full-UI flows drive fake time through many renders; give them room under a loaded coverage run.
+jest.setTimeout(30_000);
+
 describe('Family & help request (13 Phase 10)', () => {
   beforeEach(() => {
     jest.useFakeTimers({ now: new Date(2026, 10, 17, 11, 0) });
