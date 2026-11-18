@@ -17,6 +17,7 @@ const RELEASE_MANIFEST_XML = `<?xml version="1.0" encoding="utf-8"?>
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" tools:node="remove" />
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
 </manifest>
 `;
 

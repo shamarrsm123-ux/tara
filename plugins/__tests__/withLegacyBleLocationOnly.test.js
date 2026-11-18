@@ -12,7 +12,10 @@ describe('withLegacyBleLocationOnly (10 §4, P7)', () => {
       },
     };
     const out = keepLegacyFineLocationOnly(input).manifest;
-    expect(out['uses-permission-sdk-23']).toEqual([perm('android.permission.ACCESS_FINE_LOCATION', { 'android:maxSdkVersion': '30' })]);
+    expect(out['uses-permission-sdk-23']).toEqual([
+      perm('android.permission.ACCESS_FINE_LOCATION', { 'android:maxSdkVersion': '30' }),
+      perm('android.permission.ACCESS_COARSE_LOCATION', { 'tools:node': 'remove' }),
+    ]);
     expect(out['uses-permission'].map((p) => p.$['android:name'])).toEqual(['android.permission.BLUETOOTH_SCAN']);
   });
 });

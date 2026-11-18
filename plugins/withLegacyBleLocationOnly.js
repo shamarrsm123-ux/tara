@@ -10,9 +10,13 @@ const FINE = 'android.permission.ACCESS_FINE_LOCATION';
 
 /** Pure transform of the parsed manifest (exported for tests). */
 function keepLegacyFineLocationOnly(manifest) {
-  const sdk23 = (manifest.manifest['uses-permission-sdk-23'] || [])
-    .filter((p) => p.$['android:name'] !== COARSE)
-    .map((p) => (p.$['android:name'] === FINE ? { ...p, $: { ...p.$, 'android:maxSdkVersion': MAX_SDK } } : p));
+  const sdk23 = [
+    ...(manifest.manifest['uses-permission-sdk-23'] || [])
+      .filter((p) => p.$['android:name'] !== COARSE)
+      .map((p) => (p.$['android:name'] === FINE ? { ...p, $: { ...p.$, 'android:maxSdkVersion': MAX_SDK } } : p)),
+    // The Android manifest merger pairs FINE with an implied COARSE; this marker removes it from the final APK.
+    { $: { 'android:name': COARSE, 'tools:node': 'remove' } },
+  ];
   const plain = (manifest.manifest['uses-permission'] || []).filter(
     (p) => !(p.$['android:name'] === FINE && p.$['tools:node'] !== 'remove' && p.$['android:maxSdkVersion'] !== MAX_SDK),
   );
